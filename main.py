@@ -1,7 +1,8 @@
 import argparse
 import os
 import sys
-import cmd as Cmd
+import Commands
+from Exceptions import InvalidLayersPathException
 
 main = argparse.ArgumentParser(
 	prog="layers",
@@ -11,7 +12,7 @@ main.add_argument(
 	'--set', '-s',
 	nargs = 1,
 	type=str,
-	dest="layerset",
+	dest="setpath",
 	default=os.getcwd(),
 	help='Path to a file withing or to the root directory of a layer withing the layerset to operate on. Defaults to the closest layer up the file tree from pwd.'
 )
@@ -108,9 +109,10 @@ sync = subcommands.add_parser(
 
 rawArgs = sys.argv[1:]
 
-args = main.parse_args(rawArgs)
 
-print(args)
+args = main.parse_args(rawArgs)
+command_function = getattr(Commands, args.command)
+command_function(args)
 
 
 
