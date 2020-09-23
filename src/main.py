@@ -2,6 +2,7 @@ import argparse
 import os
 import sys
 import Commands
+from pathlib import Path
 from Exceptions import InvalidLayersPathException
 
 main = argparse.ArgumentParser(
@@ -33,14 +34,32 @@ new = subcommands.add_parser(
 
 new.add_argument(
 	"mount",
-	type=str,
+	type=Path,
 	help="The mount point of the new layer"
 )
 
-new.add_argument(
-	"level",
+level = new.add_mutually_exclusive_group()
+level.add_argument(
+	"-l", "--level",
 	type=int,
-	help="The level number to assign the new layer"
+	dest="level",
+	help="The level number to assign the new layer. If a layer of this level exists, the new one will be placed on the given level, and levels from there on down will be shifted down."
+)
+
+level.add_argument(
+	"--top", "-t",
+	dest="level",
+	action="store_const",
+	const="top",
+	help="Add the new layer as the top level."
+)
+
+level.add_argument(
+	"--bottom", "-b",
+	dest="level",
+	action="store_const",
+	const="bottom",
+	help="Add the new layer as the top level."
 )
 
 ### Move ###

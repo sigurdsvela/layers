@@ -16,8 +16,12 @@ RUN printf '\ndocker ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 USER docker
 WORKDIR /home/docker/
 
-RUN sudo mkdir -p /usr/src/layers
-RUN sudo chown docker /usr/src/layers
-COPY dist/layers /usr/src/layers
-RUN ln /usr/src/layers/layers /usr/bin/layers
+RUN sudo pip3 install pyinstaller
+
+COPY . layers
+RUN sudo chown -R docker:docker .
+RUN cd layers; make clean build
+
+RUN sudo mkdir -p /usr/src/
+RUN sudo cp ./layers/dist/layers /usr/bin/
 

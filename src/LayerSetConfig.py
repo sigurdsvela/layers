@@ -1,15 +1,25 @@
 import LayerSet
-from GlobalConsts import SET_CONFIG_DIR
+from GlobalConsts import SET_CONFIG_FILE
 import yaml
 from pathlib import Path
 
 class LayerSetConfig:
-	def __init__(self, set: LayerSet):
-		self._set = set
-		self._layers_config_path = set.root() / SET_CONFIG_DIR
-		self._layers_config_file = Path(self._layers_config_file).open('rw')
-		self._layers_config = yaml.load_safe(self._layers_config_file.read())
+
+	@classmethod
+	def create(cls, path: Path):
+		path = path / SET_CONFIG_FILE
+		path.touch(mode=0o660)
+		path.open('w').write(yaml.dump({
+			'layers': [
+				{
+					'root': str(path.absolute())
+				}
+			]
+		}))
+
+	def __init__(self, path: Path):
+		self._config = yaml.safe_load_all(path.open('rw').read())
 
 	@property
-	def layers():
+	def layers(self):
 		pass

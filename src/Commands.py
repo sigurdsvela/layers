@@ -1,10 +1,15 @@
 from LayerSet import LayerSet
+from LayerSetConfig import LayerSetConfig
+from pathlib import Path
 
 def mv(args):
-	lset = LayerSet(args.setpath)
+	if (LayerSet.isInLayerset(args.setpath)):
+		pass
+
 
 def new(args):
-	pass
+	if (not LayerSet.isInLayerset(args.setpath)):
+		LayerSetConfig.create(args.mount)
 
 def sync(args):
 	pass

@@ -1,5 +1,5 @@
 import os
-from GlobalConsts import SET_CONFIG_DIR
+from GlobalConsts import SET_CONFIG_FILE
 from pathlib import Path
 from Exceptions import InvalidLayersPathException
 import LayerSetConfig
@@ -7,7 +7,7 @@ import LayerSetConfig
 class LayerSet:
 	# Starting at some path, walks up the file tree looking
 	# for the first instance of a `.layers` configuration directory
-	@staticmethod
+	@classmethod
 	def find(cls, path: Path):
 		# Starts at the given path, and walks up the file tree
 		# , terminating at the first directory where it find a `.layer` config directory
@@ -20,7 +20,7 @@ class LayerSet:
 		# 	(path): The root path of the closest layer  
 		root_path = path
 		while True:
-			if ((root_path / SET_CONFIG_DIR).is_dir()):
+			if ((root_path / SET_CONFIG_FILE).exists()):
 				break
 
 			# If we are at root, but have not found the config dir
@@ -30,6 +30,14 @@ class LayerSet:
 			root_path = root_path.parent
 		return cls(root_path)
 
+
+	@classmethod
+	def isInLayerset(cls, path):
+		try:
+			cls.find(path)
+		except:
+			return False
+		return True
 
 	def __init__(self, path):
 		self._path = path
