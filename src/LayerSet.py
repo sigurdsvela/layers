@@ -63,12 +63,16 @@ class LayerSet:
 		self._config.linkTo(layer)
 		self._config.addLayer(layer, level)
 
+	@property
+	def config(self):
+		return self._config
+
 	@property		
 	def layers(self):
-		pass
+		return self.config.layers
 
 	@property
-	def root(self):
+	def path(self):
 		return self._path
 
 	def addLayer(self, mount_path):

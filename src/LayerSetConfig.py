@@ -19,11 +19,7 @@ class LayerSetConfig:
 		cpath = path / SET_CONFIG_FILE
 		cpath.touch(mode=0o660)
 		cpath.open('w').write(yaml.dump({
-			'layers': [
-				{
-					'root': str(path.absolute())
-				}
-			]
+			'layers': [str(path.absolute())]
 		}))
 
 	def __init__(self, path: Path):
@@ -40,7 +36,7 @@ class LayerSetConfig:
 
 	@property
 	def layers(self):
-		pass
+		return self.config['layers']
 
 	@property
 	def config(self):
@@ -52,6 +48,7 @@ class LayerSetConfig:
 		debug(newconfig)
 		return self._path.open('w').write(yaml.dump(newconfig))
 
+	@property
 	def path(self):
 		return self._path
 
@@ -64,10 +61,10 @@ class LayerSetConfig:
 		tmpConfig = self.config
 		if (level == -1):
 			debug("- Appending layer to end")
-			tmpConfig["layers"].append({ 'root': str(mount.absolute()) })
+			tmpConfig["layers"].append(str(mount.absolute()))
 		else:
 			debug(f"- Insering layer at {level}")
-			tmpConfig["layers"].insert({ 'root': str(mount.absolute()) }, level)
+			tmpConfig["layers"].insert(str(mount.absolute()), level)
 		self.config = tmpConfig
 
 	def _flush(self):

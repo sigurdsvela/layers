@@ -22,6 +22,8 @@ RUN sudo pip3 install pyyaml
 COPY . layers
 RUN layers new level1
 RUN cd level1; layers new ../level2
+RUN touch level1/test
+RUN cd level1; layers sync
 # RUN sudo chown -R docker:docker .
 # RUN cd layers; make clean build
 
