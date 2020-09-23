@@ -22,12 +22,12 @@ def new(args):
 
 	if (not LayerSet.isInLayerset(args.setpath)):
 		debug("New from outside a layerset. Creating new setroot.")
-		LayerSet.createSet(args.mount)
+		LayerSet.createSet(args.mount.resolve().absolute())
 	else:
 		debug("New from within a layerset. Creating new level.")
-		layerSet = LayerSet(args.setpath)
+		layerSet = LayerSet(args.setpath.absolute())
 		debug(f"Root set: {str(args.setpath)}")
-		layerSet.createLayer(args.mount, args.level)
+		layerSet.createLayer(args.mount.resolve().absolute(), args.level)
 		debug(f"new level at: {str(args.mount)}")
 
 def sync(args):
