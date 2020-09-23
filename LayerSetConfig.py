@@ -1,4 +1,4 @@
-import LayerSet.LayerSet
+import LayerSet
 from GlobalConsts import SET_CONFIG_DIR
 import yaml
 
@@ -11,3 +11,4 @@ class LayerSetConfig:
 
 	@property
 	def layers():
+		pass

@@ -2,7 +2,7 @@ import os
 from GlobalConsts import SET_CONFIG_DIR
 from pathlib import Path
 from Exceptions import InvalidLayersPathException
-from LayerSetConfig import LayerSetConfig
+import LayerSetConfig
 
 class LayerSet:
 	# Starting at some path, walks up the file tree looking
@@ -33,7 +33,7 @@ class LayerSet:
 
 	def __init__(self, path):
 		self._path = path
-		self._config = LayerSetConfig(self._path)
+		self._config = LayerSetConfig.LayerSetConfig(self._path)
 
 	@property		
 	def layers():
@@ -52,5 +52,5 @@ class LayerSet:
 		pass
 
 	# Get the lever where a file is
-	def getLayer(path)
+	def getLayer(path):
 		pass
