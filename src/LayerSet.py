@@ -3,6 +3,7 @@ from GlobalConsts import SET_CONFIG_FILE
 from pathlib import Path
 from Exceptions import InvalidLayersPathException
 from LayerSetConfig import LayerSetConfig
+import Util
 
 class LayerSet:
 	# Starting at some path, walks up the file tree looking
@@ -86,5 +87,42 @@ class LayerSet:
 	# Get the lever where a file is
 	def getLayer(self, path):
 		pass
+
+
+	def sync(self):
+		# Find the "baselayer". The layer, that all other layers .layers file point to
+		baseLayer = LayerSet(
+			self.config.path.resolve().parent
+		)
+
+		# We will first walk though all the other layers, to make sure all files in each of these layers are present in the base layer
+		for layer in baseLayer.layers:
+			layerPath = Path(layer)
+			if layerPath == baseLayer.path:
+				continue
+
+			for root, dirs, files in os.walk(layer):
+				for name in files:
+					Util.link(layerPath, baseLayer.path, name)
+
+				for name in dirs:
+					Util.link(layerPath, baseLayer.path, name)
+
+
+		# Then walk though the base layer, and make sure any file in the base layers is present in all the other layers
+		for root, dirs, files in os.walk(baseLayer.path):
+			for name in files:
+				for layer in baseLayer.layers:
+					layerPath = Path(layer)
+					if layerPath == baseLayer.path:
+						continue
+					Util.link(layerPath, baseLayer.path, name)
+
+			for name in dirs:
+				for layer in baseLayer.layers:
+					layerPath = Path(layer)
+					if layerPath == baseLayer.path:
+						continue
+					Util.link(layerPath, baseLayer.path, name)
 
 __all__ = 'LayerSet'

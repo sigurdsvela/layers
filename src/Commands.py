@@ -9,8 +9,46 @@ debug = logging.debug
 def mv(args):
 	from LayerSet import LayerSet
 
-	if (LayerSet.isInLayerset(args.setpath)):
-		pass
+	layer = LayerSet.find(args.setpath)
+
+	oldPath = Path(args.old_name).absolute().relative_to(layer.path)
+
+	if 'new_name' in args and type(args.new_name) == str:
+		newPath = Path(args.new_name).absolute().relative_to(layer.path)
+	else:
+		newPath = oldPath
+
+	# Remove all links to the file from other layers
+	# Move the file to the spesified path
+	for layerPath in layer.layers:
+		if (layerPath / oldPath).is_symlink():
+			(layerPath / oldPath).unlink()
+		else:
+			(layerPath / oldPath).rename(layerPath / newPath)
+
+	level = layer.layers.index(str(layer.path))
+	maxLevel = len(layer.layers) - 1
+
+	# Move the file to the spesified level (Pass if none spesified)
+	if 'layer' in args:
+		layerid = args.layer
+		if type(layerid) == int:
+			# Move to the spesified layer
+			Path(layer.path / newPath).rename(layer.layers[layerid] / newPath)
+		elif layerid == 'up':
+			Path(layer.path / newPath).rename(layer.layers[max(level - 1, 0)] / newPath)
+		elif layerid == 'down':
+			Path(layer.path / newPath).rename(layer.layers[min(level + 1, maxLevel)] / newPath)
+		elif layerid == 'top':
+			Path(layer.path / newPath).rename(layer.layers[0] / newPath)
+		elif layerid == 'bottom':
+			Path(layer.path / newPath).rename(layer.layers[maxLevel] / newPath)
+		else:
+			raise Exception(f"Cant move file to layer {layer}")
+
+
+	# Resync
+	layer.sync()
 
 
 def new(args):
@@ -37,37 +75,4 @@ def sync(args):
 	from LayerSet import LayerSet
 	from LayerSetConfig import LayerSetConfig
 
-	# Find the "baselayer". The layer, that all other layers .layers file point to
-	baseLayer = LayerSet(
-		LayerSet(args.setpath).config.path.resolve().parent
-	)
-
-	# We will first walk though all the other layers, to make sure all files in each of these layers are present in the base layer
-	for layer in baseLayer.layers:
-		layerPath = Path(layer)
-		if layerPath == baseLayer.path:
-			continue
-
-		for root, dirs, files in os.walk(layer):
-			for name in files:
-				Util.link(layerPath, baseLayer.path, name)
-
-			for name in dirs:
-				Util.link(layerPath, baseLayer.path, name)
-
-
-	# Then walk though the base layer, and make sure any file in the base layers is present in all the other layers
-	for root, dirs, files in os.walk(baseLayer.path):
-		for name in files:
-			for layer in baseLayer.layers:
-				layerPath = Path(layer)
-				if layerPath == baseLayer.path:
-					continue
-				Util.link(layerPath, baseLayer.path, name)
-
-		for name in dirs:
-			for layer in baseLayer.layers:
-				layerPath = Path(layer)
-				if layerPath == baseLayer.path:
-					continue
-				Util.link(layerPath, baseLayer.path, name)
+	LayerSet(args.setpath).sync()

@@ -103,29 +103,20 @@ move_dst_group.add_argument(
 )
 
 move_dst_group.add_argument(
-	'--keep', '-k',
-	help="Keep in the same layer. Used to just rename files",
-	dest="layer",
-	const="bottom",
-	action="store_const"
-)
-
-move_dst_group.add_argument(
-	'--out', '-o',
-	help="Move out of the layer set, spesifies path",
-	type=str,
-	dest="layer"
-)
-
-move_dst_group.add_argument(
 	'--layer', '-l',
 	type=int,
 	help="Move the file to the layer level spesified"
 )
 
 move.add_argument(
-	'file_name',
-	type=str
+	'old_name',
+	type=Path
+)
+
+move.add_argument(
+	'new_name',
+	type=Path,
+	nargs='?'
 )
 
 # Sync
