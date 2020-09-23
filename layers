@@ -1,3 +1,4 @@
 #!/bin/bash
 
 python3 /usr/src/layers/main.py $@
+exit $?

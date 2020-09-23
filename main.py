@@ -114,5 +114,7 @@ args = main.parse_args(rawArgs)
 command_function = getattr(Commands, args.command)
 command_function(args)
 
+sys.exit(0)
+
 
 
