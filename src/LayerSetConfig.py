@@ -18,9 +18,11 @@ class LayerSetConfig:
 
 		cpath = path / SET_CONFIG_FILE
 		cpath.touch(mode=0o660)
-		cpath.open('w').write(yaml.dump({
+		fh = cpath.open('w')
+		fh.write(yaml.dump({
 			'layers': [str(path.absolute())]
 		}))
+		fh.close()
 
 	def __init__(self, path: Path):
 		self._path = path / SET_CONFIG_FILE
@@ -40,8 +42,10 @@ class LayerSetConfig:
 
 	@property
 	def config(self):
-		return next(yaml.safe_load_all(self._path.open('r').read()))
-
+		fh = self._path.open('r')
+		content = next(yaml.safe_load_all(fh.read()))
+		fh.close()
+		return content
 	@config.setter
 	def config(self, newconfig):
 		debug("Writing to config")
