@@ -18,10 +18,10 @@ TEST_LEVEL_3 = 'level3'
 class TestCreateNewSet(TestCase):
 	def setUp(self):
 		os.chdir(TEST_DIR)
-		subprocess.Popen(["layers", "new" , TEST_LEVEL_1])
+		subprocess.Popen(["layers", "new" , TEST_LEVEL_1]).wait()
 
 	def tearDown(self):
-		subprocess.Popen(["rm", "-rf" , TEST_LEVEL_1])
+		subprocess.Popen(["rm", "-rf" , TEST_LEVEL_1]).wait()
 
 
 	def test_DirectoryWasCreated(self):
