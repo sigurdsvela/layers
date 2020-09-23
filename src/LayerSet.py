@@ -41,7 +41,11 @@ class LayerSet:
 	
 
 	@classmethod
-	def cretateSet(cls, layer: Path):
+	def createSet(cls, layer: Path):
+		if not layer.exists():
+			layer.mkdir()
+		if not layer.is_dir():
+			raise Exception("Tried to create set on file.")
 		LayerSetConfig.create(layer)
 
 
@@ -56,7 +60,7 @@ class LayerSet:
 		if not layer.is_dir():
 			raise Exception('Can not create layer. Path exist, but is not a directory')
 		
-		self._config.createLink(layer)
+		self._config.linkTo(layer)
 		self._config.addLayer(layer, level)
 
 	@property		

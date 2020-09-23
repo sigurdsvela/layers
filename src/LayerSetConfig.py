@@ -11,14 +11,14 @@ class LayerSetConfig:
 	@classmethod
 	def create(cls, path: Path):
 		if path.exists() and not path.is_dir():
-			raise Exception("Path exists, but is not a directory")
+			raise Exception("Cant create config file in non existent directory, or inside a file.")
 		
 		if (path / SET_CONFIG_FILE).exists():
 			raise Exception("This directory is allready a registered layer")
 
-		path = path / SET_CONFIG_FILE
-		path.touch(mode=0o660)
-		path.open('w').write(yaml.dump({
+		cpath = path / SET_CONFIG_FILE
+		cpath.touch(mode=0o660)
+		cpath.open('w').write(yaml.dump({
 			'layers': [
 				{
 					'root': str(path.absolute())

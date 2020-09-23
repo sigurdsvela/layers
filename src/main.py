@@ -43,6 +43,7 @@ level.add_argument(
 	"-l", "--level",
 	type=int,
 	dest="level",
+	default=-1,
 	help="The level number to assign the new layer. If a layer of this level exists, the new one will be placed on the given level, and levels from there on down will be shifted down."
 )
 
