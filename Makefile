@@ -1,10 +1,12 @@
 build:
-	pip3 install pyyaml
-	pyinstaller -F src/main.py --name layers
+	# pyinstaller -F src/main.py --name layers
+	docker build . --tag layers
 
 run:
-	docker build . --tag layers
 	docker run -it layers
+
+test:
+	docker run -it layers "./tests/start_tests.sh"
 
 clean:
 	rm -rf build
