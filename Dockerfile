@@ -1,5 +1,5 @@
 FROM ubuntu:20.04
-
+ENV PATH="/home/docker/layers/bin:${PATH}"
 ENV TZ=Europe/Oslo
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
@@ -17,11 +17,14 @@ USER docker
 WORKDIR /home/docker/
 
 RUN sudo pip3 install pyinstaller
+RUN sudo pip3 install pyyaml
 
 COPY . layers
-RUN sudo chown -R docker:docker .
-RUN cd layers; make clean build
+RUN layers new level1
+RUN cd level1; layers new ../level2
+# RUN sudo chown -R docker:docker .
+# RUN cd layers; make clean build
 
-RUN sudo mkdir -p /usr/src/
-RUN sudo cp ./layers/dist/layers /usr/bin/
+# RUN sudo mkdir -p /usr/src/
+# RUN sudo cp ./layers/dist/layers /usr/bin/
 

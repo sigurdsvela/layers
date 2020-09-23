@@ -12,7 +12,7 @@ main = argparse.ArgumentParser(
 main.add_argument(
 	'--set', '-s',
 	nargs = 1,
-	type=str,
+	type=Path,
 	dest="setpath",
 	default=os.getcwd(),
 	help='Path to a file withing or to the root directory of a layer withing the layerset to operate on. Defaults to the closest layer up the file tree from pwd.'

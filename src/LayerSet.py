@@ -2,7 +2,7 @@ import os
 from GlobalConsts import SET_CONFIG_FILE
 from pathlib import Path
 from Exceptions import InvalidLayersPathException
-import LayerSetConfig
+from LayerSetConfig import LayerSetConfig
 
 class LayerSet:
 	# Starting at some path, walks up the file tree looking
@@ -35,13 +35,29 @@ class LayerSet:
 	def isInLayerset(cls, path):
 		try:
 			cls.find(path)
-		except:
+		except InvalidLayersPathException:
 			return False
 		return True
+	
+
+	@classmethod
+	def cretateSet(cls, layer: Path):
+		LayerSetConfig.create(layer)
+
 
 	def __init__(self, path):
 		self._path = path
-		self._config = LayerSetConfig.LayerSetConfig(self._path)
+		self._config = LayerSetConfig(self._path)
+
+
+	def createLayer(self, layer: Path, level: int = -1):
+		if not layer.exists():
+			layer.mkdir()
+		if not layer.is_dir():
+			raise Exception('Can not create layer. Path exist, but is not a directory')
+		
+		self._config.createLink(layer)
+		self._config.addLayer(layer, level)
 
 	@property		
 	def layers(self):
@@ -62,3 +78,5 @@ class LayerSet:
 	# Get the lever where a file is
 	def getLayer(self, path):
 		pass
+
+__all__ = 'LayerSet'
