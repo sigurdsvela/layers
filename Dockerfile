@@ -18,11 +18,6 @@ WORKDIR /home/docker/
 
 RUN sudo mkdir -p /usr/src/layers
 RUN sudo chown docker /usr/src/layers
-COPY . /usr/src/layers
-COPY layers /usr/bin
-
-# Install layers
-
-#
-
+COPY dist/layers /usr/src/layers
+RUN ln /usr/src/layers/layers /usr/bin/layers
 

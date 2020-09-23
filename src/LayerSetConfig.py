@@ -1,6 +1,7 @@
 import LayerSet
 from GlobalConsts import SET_CONFIG_DIR
 import yaml
+from pathlib import Path
 
 class LayerSetConfig:
 	def __init__(self, set: LayerSet):

@@ -116,7 +116,8 @@ sync = subcommands.add_parser(
 
 
 rawArgs = sys.argv[1:]
-
+if (len(rawArgs) == 0):
+	rawArgs = ['-h']
 
 args = main.parse_args(rawArgs)
 command_function = getattr(Commands, args.command)

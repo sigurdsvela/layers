@@ -36,21 +36,21 @@ class LayerSet:
 		self._config = LayerSetConfig.LayerSetConfig(self._path)
 
 	@property		
-	def layers():
+	def layers(self):
 		pass
 
 	@property
-	def root():
+	def root(self):
 		return self._path
 
-	def addLayer(mount_path):
+	def addLayer(self, mount_path):
 		pass
 
 	# List files
 	# @path the path local to the root of the layer
-	def ls(path):
+	def ls(self, path):
 		pass
 
 	# Get the lever where a file is
-	def getLayer(path):
+	def getLayer(self, path):
 		pass
