@@ -49,7 +49,7 @@ move = subcommands.add_parser(
 	help="move a file from one layer to another"
 )
 
-move_dst_group = move.add_mutually_exclusive_group(required = True)
+move_dst_group = move.add_mutually_exclusive_group(required = False)
 move_dst_group.add_argument(
 	'--up', '-u',
 	help="Move one layer up",
@@ -83,6 +83,14 @@ move_dst_group.add_argument(
 )
 
 move_dst_group.add_argument(
+	'--keep', '-k',
+	help="Keep in the same layer. Used to just rename files",
+	dest="layer",
+	const="bottom",
+	action="store_const"
+)
+
+move_dst_group.add_argument(
 	'--out', '-o',
 	help="Move out of the layer set, spesifies path",
 	type=str,
@@ -92,6 +100,7 @@ move_dst_group.add_argument(
 move_dst_group.add_argument(
 	'--layer', '-l',
 	type=int,
+	required=True,
 	help="Move the file to the layer level spesified"
 )
 

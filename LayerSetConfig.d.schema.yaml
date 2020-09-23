@@ -1,0 +1,14 @@
+./layers.yaml:
+	type: array
+	name: "layerset.layers"
+	description: An array of layers, and their path. Their position encode their level.
+	properties:
+		type: object
+		description: Desciption of the layers
+		properties:
+			root:
+				type: string
+				name: "root"
+				description: The root path to the layer
+
+
