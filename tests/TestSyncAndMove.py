@@ -23,7 +23,6 @@ from testconst import (
 
 class TestSyncAndMove(TestCase):
 	def setUp(self):
-		self._ConstantsBackup = GlobalConsts
 		subprocess.Popen(["rm", "-rf", TEST_DIR]).wait()
 		TEST_DIR.mkdir(mode=0o775, parents=True)
 		os.chdir(TEST_DIR)
@@ -40,7 +39,6 @@ class TestSyncAndMove(TestCase):
 
 
 	def tearDown(self):
-		GlobalConsts = self._ConstantsBackup
 		subprocess.Popen(["rm", "-rf", TEST_DIR]).wait()
 
 	def test_Setup(self):
