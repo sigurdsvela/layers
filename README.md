@@ -1,4 +1,4 @@
-![](./Illustration.png)
+![](./res/Illustration.1280x640.jpg)
 
 *This project is still pre-pre-alpha, so if you somehow stumble onto this page:*
 * *Use at your own discretion*
