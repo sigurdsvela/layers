@@ -8,7 +8,7 @@ from testconst import TEST_DIR, TEST_LEVEL_1, TEST_LEVEL_2, TEST_LEVEL_3
 from unittest import TestCase
 
 from GlobalConsts import SET_CONFIG_FILE
-from LayerSet import LayerSet
+from Layer import Layer
 
 
 
@@ -26,7 +26,7 @@ class TestCreateNewSet(TestCase):
 
 
 	def test_LayerConfigFile(self):
-		layerSet = LayerSet(TEST_DIR / TEST_LEVEL_1)
+		layer = Layer(TEST_DIR / TEST_LEVEL_1)
 		self.assertTrue((TEST_DIR / TEST_LEVEL_1 / SET_CONFIG_FILE).is_file())
-		self.assertEqual(layerSet.config.layers, [str(TEST_DIR / TEST_LEVEL_1)])
+		self.assertEqual(layer.config.layers, [str(TEST_DIR / TEST_LEVEL_1)])
 

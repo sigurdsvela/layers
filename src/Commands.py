@@ -7,10 +7,10 @@ logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.ERROR)
 debug = logging.debug
 
 def mv(args):
-	from LayerSet import LayerSet
+	from Layer import Layer
 
 	# The layer the file is currently in
-	layer = LayerSet(LayerSet.find(
+	layer = Layer(Layer.findRoot(
 		Path(args.old_name).resolve().absolute()
 	))
 
@@ -55,8 +55,8 @@ def mv(args):
 
 
 def new(args):
-	from LayerSet import LayerSet
-	from LayerSetConfig import LayerSetConfig
+	from Layer import Layer
+	from LayerConfig import LayerConfig
 
 	if not args.mount.exists():
 		args.mount.mkdir()
@@ -64,18 +64,18 @@ def new(args):
 	if not args.mount.is_dir():
 		raise Exception("Path was a file. Must be directory")
 
-	if (not LayerSet.isInLayerset(args.layer_path)):
+	if (not Layer.isInLayer(args.layer_path)):
 		debug(f"{str(args.layer_path)} not within an existing layer. Creating new set at {str(args.mount)}")
-		LayerSet.createSet(args.mount.resolve().absolute())
+		Layer.createSet(args.mount.resolve().absolute())
 	else:
-		debug("New from within a layerset. Creating new level.")
-		layerSet = LayerSet(args.layer_path.absolute())
+		debug("New from within a layer. Creating new level.")
+		layer = Layer(args.layer_path.absolute())
 		debug(f"Root set: {str(args.layer_path)}")
-		layerSet.createLayer(args.mount.resolve().absolute(), args.level)
+		layer.createLayer(args.mount.resolve().absolute(), args.level)
 		debug(f"new level at: {str(args.mount)}")
 
 def sync(args):
-	from LayerSet import LayerSet
-	from LayerSetConfig import LayerSetConfig
+	from Layer import Layer
+	from LayerConfig import LayerConfig
 
-	LayerSet(args.layer_path).sync()
+	Layer(args.layer_path).sync()

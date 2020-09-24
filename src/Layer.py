@@ -2,14 +2,14 @@ import os
 from GlobalConsts import SET_CONFIG_FILE
 from pathlib import Path
 from Exceptions import InvalidLayersPathException
-from LayerSetConfig import LayerSetConfig
+from LayerConfig import LayerConfig
 import Util
 
-class LayerSet:
+class Layer:
 	# Starting at some path, walks up the file tree looking
 	# for the first instance of a `.layers` configuration directory
 	@classmethod
-	def find(cls, path: Path):
+	def findRoot(cls, path: Path):
 		# Starts at the given path, and walks up the file tree
 		# , terminating at the first directory where it find a `.layer` config directory
 		# Returns the reversed String.
@@ -33,9 +33,9 @@ class LayerSet:
 
 
 	@classmethod
-	def isInLayerset(cls, path):
+	def isInLayer(cls, path):
 		try:
-			cls.find(path)
+			cls.findRoot(path)
 		except InvalidLayersPathException:
 			return False
 		return True
@@ -47,12 +47,12 @@ class LayerSet:
 			layer.mkdir()
 		if not layer.is_dir():
 			raise Exception("Tried to create set on file.")
-		LayerSetConfig.create(layer)
+		LayerConfig.create(layer)
 
 
 	def __init__(self, path):
 		self._path = path
-		self._config = LayerSetConfig(self._path)
+		self._config = LayerConfig(self._path)
 
 
 	def createLayer(self, layer: Path, level: int = -1):
@@ -91,7 +91,7 @@ class LayerSet:
 
 	def sync(self):
 		# Find the "baselayer". The layer, that all other layers .layers file point to
-		baseLayer = LayerSet(
+		baseLayer = Layer(
 			self.config.path.resolve().parent
 		)
 
@@ -125,4 +125,4 @@ class LayerSet:
 						continue
 					Util.link(layerPath, baseLayer.path, name)
 
-__all__ = 'LayerSet'
+__all__ = 'Layer'

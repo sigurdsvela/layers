@@ -9,7 +9,7 @@ import TestUtils
 
 
 from GlobalConsts import SET_CONFIG_FILE
-from LayerSet import LayerSet
+from Layer import Layer
 
 from testconst import (
 	TEST_DIR,

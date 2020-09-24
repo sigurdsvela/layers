@@ -1,4 +1,4 @@
-import LayerSet
+import Layer
 from GlobalConsts import SET_CONFIG_FILE
 import yaml
 from pathlib import Path
@@ -6,7 +6,7 @@ import logging
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.ERROR)
 debug = logging.debug
 
-class LayerSetConfig:
+class LayerConfig:
 
 	@classmethod
 	def create(cls, path: Path):
@@ -57,7 +57,7 @@ class LayerSetConfig:
 		return self._path
 
 	def addLayer(self, mount: Path, level: int = -1):
-		debug(f"Adding new layer to layerset with path {self._path}")
+		debug(f"Adding new layer to layer with path {self._path}")
 		debug("Current config")
 		debug(self.config)
 		debug("Layers")
@@ -75,4 +75,4 @@ class LayerSetConfig:
 		self._path.open('w').write(yaml.dump(self.config))
 
 
-__all__ = 'LayerSetConfig'
+__all__ = 'LayerConfig'
