@@ -11,7 +11,6 @@ main = argparse.ArgumentParser(
 )
 main.add_argument(
 	'--set', '-s',
-	nargs = 1,
 	type=Path,
 	dest="setpath",
 	default=os.getcwd(),
