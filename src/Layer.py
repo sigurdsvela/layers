@@ -55,7 +55,7 @@ class Layer:
 			raise FileNotFoundError("Cant create Layer object for a non existent file. Use .crateSet or .createLayer")
 		if not path.is_dir():
 			raise NotADirectoryError("Cant create Layer object for a path to a file. Must be a directory.")
-		
+
 		self._path = path
 		self._config = LayerConfig(self._path)
 
@@ -100,34 +100,37 @@ class Layer:
 			self.config.path.resolve().parent
 		)
 
-		# We will first walk though all the other layers, to make sure all files in each of these layers are present in the base layer
-		for layer in baseLayer.layers:
-			layerPath = Path(layer)
-			if layerPath == baseLayer.path:
+		# All layers to base layer
+		# The base layer to all layers
+		iteration = [(layer, baseLayer.path) for layer in baseLayer.layers]
+		iteration.extend([(baseLayer.path, layer) for layer in baseLayer.layers])
+
+		for llayer, rlayer in iteration:
+			llayerPath = Path(llayer)
+			rlayerPath = Path(rlayer)
+
+			if llayerPath == rlayerPath:
 				continue
 
-			for root, dirs, files in os.walk(layer):
+			for root, dirs, files in os.walk(llayerPath):
 				for name in files:
-					Util.link(layerPath, baseLayer.path, name)
+					# Check that the original exists
+					if (llayerPath / name).is_symlink():
+						orig = (llayerPath / name).resolve(strict = False).absolute()
+						if not orig.exists():
+							raise FileNotFoundError(f"Sync Failed: Original for '{name}' is missing.")
+					
+					# Make sure it is linked
+					Util.link(llayerPath, rlayerPath, name)
 
 				for name in dirs:
-					Util.link(layerPath, baseLayer.path, name)
-
-
-		# Then walk though the base layer, and make sure any file in the base layers is present in all the other layers
-		for root, dirs, files in os.walk(baseLayer.path):
-			for name in files:
-				for layer in baseLayer.layers:
-					layerPath = Path(layer)
-					if layerPath == baseLayer.path:
-						continue
-					Util.link(layerPath, baseLayer.path, name)
-
-			for name in dirs:
-				for layer in baseLayer.layers:
-					layerPath = Path(layer)
-					if layerPath == baseLayer.path:
-						continue
-					Util.link(layerPath, baseLayer.path, name)
+					# Check that the original exists
+					if (llayer / name).is_symlink():
+						orig = (llayer / name).resolve(strict = False).absolute()
+						if not orig.exists():
+							raise FileNotFoundError(f"Sync Failed: Original for '{name}' is missing.")
+					
+					# Make sure it is linked
+					Util.link(llayer, baseLayer.path, name)
 
 __all__ = 'Layer'
