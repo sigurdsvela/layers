@@ -73,40 +73,40 @@ move = subcommands.add_parser(
 move_dst_group = move.add_mutually_exclusive_group(required = False)
 move_dst_group.add_argument(
 	'--up', '-u',
-	help="Move one layer up",
-	dest="layer",
+	help="Move one level up",
+	dest="level",
 	const="up",
 	action="store_const"
 )
 
 move_dst_group.add_argument(
 	'--down', '-d',
-	help="Move one layer down",
-	dest="layer",
+	help="Move one level down",
+	dest="level",
 	const="down",
 	action="store_const"
 )
 
 move_dst_group.add_argument(
 	'--top', '-t',
-	help="Move too top layer",
-	dest="layer",
+	help="Move too top level",
+	dest="level",
 	const="top",
 	action="store_const"
 )
 
 move_dst_group.add_argument(
 	'--bottom', '-b',
-	help="Move too bottom layer",
-	dest="layer",
+	help="Move too bottom level",
+	dest="level",
 	const="bottom",
 	action="store_const"
 )
 
 move_dst_group.add_argument(
-	'--layer', '-l',
+	'--level', '-l',
 	type=int,
-	help="Move the file to the layer level spesified"
+	help="Move the file to the level level spesified"
 )
 
 move.add_argument(

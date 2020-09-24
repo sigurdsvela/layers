@@ -8,7 +8,7 @@ from unittest import TestCase
 import TestUtils
 
 
-from GlobalConsts import SET_CONFIG_FILE
+import GlobalConsts
 from Layer import Layer
 
 from testconst import (
@@ -23,6 +23,7 @@ from testconst import (
 
 class TestSyncAndMove(TestCase):
 	def setUp(self):
+		self._ConstantsBackup = GlobalConsts
 		subprocess.Popen(["rm", "-rf", TEST_DIR]).wait()
 		TEST_DIR.mkdir(mode=0o775, parents=True)
 		os.chdir(TEST_DIR)
@@ -39,6 +40,7 @@ class TestSyncAndMove(TestCase):
 
 
 	def tearDown(self):
+		GlobalConsts = self._ConstantsBackup
 		subprocess.Popen(["rm", "-rf", TEST_DIR]).wait()
 
 	def test_Setup(self):
@@ -144,6 +146,31 @@ class TestSyncAndMove(TestCase):
 				(TEST_DIR / TEST_LEVEL_1 / TEST_LEVEL_1_FILE),
 				(TEST_DIR / TEST_LEVEL_2 / TEST_LEVEL_1_FILE),
 				(TEST_DIR / TEST_LEVEL_3 / TEST_LEVEL_1_FILE)
+			)
+		)
+
+	def test_renameFile(self):
+		os.chdir(TEST_DIR / TEST_LEVEL_1)
+		subprocess.Popen(["layers", "sync"]).wait()
+
+		TEST_LEVEL_3_FILE_NEWNAME = 'newname'
+
+		subprocess.Popen(["layers", "mv", TEST_LEVEL_3_FILE, TEST_LEVEL_3_FILE_NEWNAME]).wait()
+
+		# Old file should be nowhere
+		self.assertFalse((TEST_DIR / TEST_LEVEL_1 / TEST_LEVEL_3_FILE).exists())
+		self.assertFalse((TEST_DIR / TEST_LEVEL_2 / TEST_LEVEL_3_FILE).exists())
+		self.assertFalse((TEST_DIR / TEST_LEVEL_3 / TEST_LEVEL_3_FILE).exists())
+		# Original should have kept level
+		self.assertTrue((TEST_DIR / TEST_LEVEL_3 / TEST_LEVEL_3_FILE_NEWNAME).exists())
+		self.assertFalse((TEST_DIR / TEST_LEVEL_3 / TEST_LEVEL_3_FILE_NEWNAME).is_symlink())
+
+		# Check symlinks
+		self.assertTrue(
+			TestUtils.confirmLinkedSet(
+				(TEST_DIR / TEST_LEVEL_1 / TEST_LEVEL_3_FILE_NEWNAME),
+				(TEST_DIR / TEST_LEVEL_2 / TEST_LEVEL_3_FILE_NEWNAME),
+				(TEST_DIR / TEST_LEVEL_3 / TEST_LEVEL_3_FILE_NEWNAME)
 			)
 		)
 

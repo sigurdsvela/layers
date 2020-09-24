@@ -29,25 +29,25 @@ def mv(args):
 		else:
 			(layerPath / oldLayerPath).rename(layerPath / newLayerPath)
 
-	level = layer.layers.index(str(layer.path))
+	currentLevel = layer.layers.index(str(layer.path))
 	maxLevel = len(layer.layers) - 1
 
 	# Move the file to the spesified level (Pass if none spesified)
-	if 'layer' in args and args.layer != -1:
-		layerid = args.layer
-		if type(layerid) == int:
+	if 'level' in args and args.level != None:
+		newLevel = args.level
+		if type(newLevel) == int:
 			# Move to the spesified layer
-			Path(layer.path / newLayerPath).rename(layer.layers[layerid] / newLayerPath)
-		elif layerid == 'up':
-			Path(layer.path / newLayerPath).rename(layer.layers[max(level - 1, 0)] / newLayerPath)
-		elif layerid == 'down':
-			Path(layer.path / newLayerPath).rename(layer.layers[min(level + 1, maxLevel)] / newLayerPath)
-		elif layerid == 'top':
+			Path(layer.path / newLayerPath).rename(layer.layers[newLevel] / newLayerPath)
+		elif newLevel == 'up':
+			Path(layer.path / newLayerPath).rename(layer.layers[max(currentLevel - 1, 0)] / newLayerPath)
+		elif newLevel == 'down':
+			Path(layer.path / newLayerPath).rename(layer.layers[min(currentLevel + 1, maxLevel)] / newLayerPath)
+		elif newLevel == 'top':
 			Path(layer.path / newLayerPath).rename(layer.layers[0] / newLayerPath)
-		elif layerid == 'bottom':
+		elif newLevel == 'bottom':
 			Path(layer.path / newLayerPath).rename(layer.layers[maxLevel] / newLayerPath)
 		else:
-			raise Exception(f"Cant move file to layer {layer}")
+			raise Exception(f"Cant move file to layer-level {newLevel}")
 
 
 	# Resync
