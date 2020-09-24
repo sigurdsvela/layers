@@ -16,7 +16,7 @@ main.add_argument(
 	dest="layer_path",
 	required=False,
 	default=os.getcwd(),
-	help='Path to a file withing or to the root directory of a layer withing the layerset to operate on. Defaults to the closest layer up the file tree from pwd.'
+	help='A path to the root of, or a file withing a layer. Designates the target layer to operate on, or the target layer-set.'
 )
 
 ##################
