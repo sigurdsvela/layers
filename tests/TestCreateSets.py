@@ -4,16 +4,13 @@ sys.path.append("./src")
 import unittest
 import subprocess
 import os
-from testdir import TEST_DIR
+from testconst import TEST_DIR, TEST_LEVEL_1, TEST_LEVEL_2, TEST_LEVEL_3
 from unittest import TestCase
 
 from GlobalConsts import SET_CONFIG_FILE
 from LayerSet import LayerSet
 
 
-TEST_LEVEL_1 = 'level1'
-TEST_LEVEL_2 = 'level2'
-TEST_LEVEL_3 = 'level3'
 
 class TestCreateNewSet(TestCase):
 	def setUp(self):
