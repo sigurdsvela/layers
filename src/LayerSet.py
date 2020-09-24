@@ -29,7 +29,7 @@ class LayerSet:
 				raise InvalidLayersPathException()
 
 			root_path = root_path.parent
-		return cls(root_path)
+		return root_path
 
 
 	@classmethod
