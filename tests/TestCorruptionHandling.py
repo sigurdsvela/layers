@@ -47,21 +47,32 @@ class TestCorruptionHandling(TestCase):
 		))
 
 	def test_missingOriginal(self):
-		# Remove a synlink
-		# (TEST_DIR / L1 / L1_FILE).unlink()
-		# self.assertFalse((TEST_DIR / L1 / L1_FILE).exists())
-		# # Resync
-		# subprocess.Popen(["layers", "-l", TEST_DIR / TEST_LEVEL_1, "sync"]).wait()
+		#Remove a synlink
+		(TEST_DIR / L1 / L1_FILE).unlink()
+		self.assertFalse((TEST_DIR / L1 / L1_FILE).exists())
+		# Resync
+		devnull = Path("/dev/null")
+		devnullw = devnull.open('w')
+		(p := subprocess.Popen(
+			["layers", "-l", TEST_DIR / TEST_LEVEL_1, "sync"],
+			stdout = devnullw,
+			stderr = devnullw
+		)).wait()
+		devnullw.close()
 
-		# # Check remainding links
-		# self.assertTrue(TestUtils.confirmLinkedSet(
-		# 	(TEST_DIR / L1 / L2_FILE),
-		# 	(TEST_DIR / L2 / L2_FILE),
-		# 	(TEST_DIR / L3 / L2_FILE)
-		# ))
-		# self.assertTrue(TestUtils.confirmLinkedSet(
-		# 	(TEST_DIR / L1 / L3_FILE),
-		# 	(TEST_DIR / L2 / L3_FILE),
-		# 	(TEST_DIR / L3 / L3_FILE)
-		# ))
-		pass
+		# Expect be done
+		self.assertFalse(p.returncode is None)
+		# But expect faileure
+		self.assertFalse(p.returncode == 0)
+
+		# Check remainding links
+		self.assertTrue(TestUtils.confirmLinkedSet(
+			(TEST_DIR / L1 / L2_FILE),
+			(TEST_DIR / L2 / L2_FILE),
+			(TEST_DIR / L3 / L2_FILE)
+		))
+		self.assertTrue(TestUtils.confirmLinkedSet(
+			(TEST_DIR / L1 / L3_FILE),
+			(TEST_DIR / L2 / L3_FILE),
+			(TEST_DIR / L3 / L3_FILE)
+		))
