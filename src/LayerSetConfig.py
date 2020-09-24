@@ -3,7 +3,7 @@ from GlobalConsts import SET_CONFIG_FILE
 import yaml
 from pathlib import Path
 import logging
-logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.ERROR)
 debug = logging.debug
 
 class LayerSetConfig:

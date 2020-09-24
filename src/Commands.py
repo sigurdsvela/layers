@@ -3,7 +3,7 @@ from pathlib import Path
 import logging
 import os
 import Util
-logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.ERROR)
 debug = logging.debug
 
 def mv(args):
