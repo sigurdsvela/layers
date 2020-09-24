@@ -133,7 +133,15 @@ if (len(rawArgs) == 0):
 
 args = main.parse_args(rawArgs)
 command_function = getattr(Commands, args.command)
-command_function(args)
+
+try:
+	command_function(args)
+except Exception as err:
+	message = "{0}".format(err)
+	if message == "":
+		message = "Unknown Error"
+	sys.exit(message)
+
 
 sys.exit(0)
 
