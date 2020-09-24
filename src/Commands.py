@@ -16,18 +16,25 @@ def mv(args):
 
 	oldLayerPath = Path(args.old_name).resolve().absolute().relative_to(layer.path)
 
-	if 'new_name' in args and type(args.new_name) == str:
-		newLayerPath = Path(args.new_name).absolute().relative_to(layer.path)
+	if 'new_name' in args and not args.new_name is None:
+		newLayerPath = Path(args.new_name).absolute().relative_to(
+			Layer.findRoot(
+				Path(args.new_name).absolute()
+			)
+		)
 	else:
 		newLayerPath = oldLayerPath
 
 	# Remove all links to the file from other layers
-	# Move the file to the spesified path
 	for layerPath in layer.layers:
 		if (layerPath / oldLayerPath).is_symlink():
 			(layerPath / oldLayerPath).unlink()
-		else:
-			(layerPath / oldLayerPath).rename(layerPath / newLayerPath)
+
+	# Rename the original
+	if not newLayerPath is None:
+		(layer.path / oldLayerPath).rename(layer.path / newLayerPath)
+
+	
 
 	currentLevel = layer.layers.index(str(layer.path))
 	maxLevel = len(layer.layers) - 1
