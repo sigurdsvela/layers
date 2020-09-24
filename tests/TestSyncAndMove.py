@@ -5,6 +5,8 @@ import unittest
 import subprocess
 import os
 from unittest import TestCase
+import TestUtils
+
 
 from GlobalConsts import SET_CONFIG_FILE
 from LayerSet import LayerSet
@@ -56,35 +58,27 @@ class TestSyncAndMove(TestCase):
 		self.assertTrue((TEST_DIR / TEST_LEVEL_3 / TEST_LEVEL_3_FILE).is_file())
 
 		# Synlink creation
-		self.assertTrue((TEST_DIR / TEST_LEVEL_1 / TEST_LEVEL_2_FILE).is_symlink())
-		self.assertEqual(
-			(TEST_DIR / TEST_LEVEL_1 / TEST_LEVEL_2_FILE).resolve().absolute(),
-			(TEST_DIR / TEST_LEVEL_2 / TEST_LEVEL_2_FILE).resolve().absolute()
-		)
-		self.assertTrue((TEST_DIR / TEST_LEVEL_2 / TEST_LEVEL_3_FILE).is_symlink())
-		self.assertEqual(
-			(TEST_DIR / TEST_LEVEL_2 / TEST_LEVEL_3_FILE).resolve().absolute(),
-			(TEST_DIR / TEST_LEVEL_3 / TEST_LEVEL_3_FILE).resolve().absolute()
-		)
-		self.assertTrue((TEST_DIR / TEST_LEVEL_3 / TEST_LEVEL_1_FILE).is_symlink())
-		self.assertEqual(
-			(TEST_DIR / TEST_LEVEL_3 / TEST_LEVEL_1_FILE).resolve().absolute(),
-			(TEST_DIR / TEST_LEVEL_1 / TEST_LEVEL_1_FILE).resolve().absolute()
-		)
-		self.assertTrue((TEST_DIR / TEST_LEVEL_1 / TEST_LEVEL_3_FILE).is_symlink())
-		self.assertEqual(
-			(TEST_DIR / TEST_LEVEL_1 / TEST_LEVEL_3_FILE).resolve().absolute(),
-			(TEST_DIR / TEST_LEVEL_3 / TEST_LEVEL_3_FILE).resolve().absolute()
-		)
-		self.assertTrue((TEST_DIR / TEST_LEVEL_2 / TEST_LEVEL_1_FILE).is_symlink())
-		self.assertEqual(
-			(TEST_DIR / TEST_LEVEL_2 / TEST_LEVEL_1_FILE).resolve().absolute(),
-			(TEST_DIR / TEST_LEVEL_1 / TEST_LEVEL_1_FILE).resolve().absolute()
-		)
-		self.assertTrue((TEST_DIR / TEST_LEVEL_3 / TEST_LEVEL_2_FILE).is_symlink())
-		self.assertEqual(
-			(TEST_DIR / TEST_LEVEL_3 / TEST_LEVEL_2_FILE).resolve().absolute(),
-			(TEST_DIR / TEST_LEVEL_2 / TEST_LEVEL_2_FILE).resolve().absolute()
+		self.assertTrue(
+			TestUtils.confirmLinkedSet(
+				(TEST_DIR / TEST_LEVEL_1 / TEST_LEVEL_1_FILE),
+				(TEST_DIR / TEST_LEVEL_2 / TEST_LEVEL_1_FILE),
+				(TEST_DIR / TEST_LEVEL_3 / TEST_LEVEL_1_FILE)
+			)
 		)
 
+		self.assertTrue(
+			TestUtils.confirmLinkedSet(
+				(TEST_DIR / TEST_LEVEL_1 / TEST_LEVEL_2_FILE),
+				(TEST_DIR / TEST_LEVEL_2 / TEST_LEVEL_2_FILE),
+				(TEST_DIR / TEST_LEVEL_3 / TEST_LEVEL_2_FILE)
+			)
+		)
+
+		self.assertTrue(
+			TestUtils.confirmLinkedSet(
+				(TEST_DIR / TEST_LEVEL_1 / TEST_LEVEL_3_FILE),
+				(TEST_DIR / TEST_LEVEL_2 / TEST_LEVEL_3_FILE),
+				(TEST_DIR / TEST_LEVEL_3 / TEST_LEVEL_3_FILE)
+			)
+		)
 		
