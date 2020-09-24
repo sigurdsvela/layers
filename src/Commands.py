@@ -9,22 +9,25 @@ debug = logging.debug
 def mv(args):
 	from LayerSet import LayerSet
 
-	layer = LayerSet.find(args.setpath)
+	# The layer the file is currently in
+	layer = LayerSet(LayerSet.find(
+		Path(args.old_name).resolve().absolute()
+	))
 
-	oldPath = Path(args.old_name).absolute().relative_to(layer.path)
+	oldLayerPath = Path(args.old_name).resolve().absolute().relative_to(layer.path)
 
 	if 'new_name' in args and type(args.new_name) == str:
-		newPath = Path(args.new_name).absolute().relative_to(layer.path)
+		newLayerPath = Path(args.new_name).absolute().relative_to(layer.path)
 	else:
-		newPath = oldPath
+		newLayerPath = oldLayerPath
 
 	# Remove all links to the file from other layers
 	# Move the file to the spesified path
 	for layerPath in layer.layers:
-		if (layerPath / oldPath).is_symlink():
-			(layerPath / oldPath).unlink()
+		if (layerPath / oldLayerPath).is_symlink():
+			(layerPath / oldLayerPath).unlink()
 		else:
-			(layerPath / oldPath).rename(layerPath / newPath)
+			(layerPath / oldLayerPath).rename(layerPath / newLayerPath)
 
 	level = layer.layers.index(str(layer.path))
 	maxLevel = len(layer.layers) - 1
@@ -34,15 +37,15 @@ def mv(args):
 		layerid = args.layer
 		if type(layerid) == int:
 			# Move to the spesified layer
-			Path(layer.path / newPath).rename(layer.layers[layerid] / newPath)
+			Path(layer.path / newLayerPath).rename(layer.layers[layerid] / newLayerPath)
 		elif layerid == 'up':
-			Path(layer.path / newPath).rename(layer.layers[max(level - 1, 0)] / newPath)
+			Path(layer.path / newLayerPath).rename(layer.layers[max(level - 1, 0)] / newLayerPath)
 		elif layerid == 'down':
-			Path(layer.path / newPath).rename(layer.layers[min(level + 1, maxLevel)] / newPath)
+			Path(layer.path / newLayerPath).rename(layer.layers[min(level + 1, maxLevel)] / newLayerPath)
 		elif layerid == 'top':
-			Path(layer.path / newPath).rename(layer.layers[0] / newPath)
+			Path(layer.path / newLayerPath).rename(layer.layers[0] / newLayerPath)
 		elif layerid == 'bottom':
-			Path(layer.path / newPath).rename(layer.layers[maxLevel] / newPath)
+			Path(layer.path / newLayerPath).rename(layer.layers[maxLevel] / newLayerPath)
 		else:
 			raise Exception(f"Cant move file to layer {layer}")
 
