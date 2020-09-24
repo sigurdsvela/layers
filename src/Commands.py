@@ -61,8 +61,8 @@ def new(args):
 	if not args.mount.is_dir():
 		raise Exception("Path was a file. Must be directory")
 
-		debug("New from outside a layerset. Creating new setroot.")
 	if (not LayerSet.isInLayerset(args.layer_path)):
+		debug(f"{str(args.layer_path)} not within an existing layer. Creating new set at {str(args.mount)}")
 		LayerSet.createSet(args.mount.resolve().absolute())
 	else:
 		debug("New from within a layerset. Creating new level.")
