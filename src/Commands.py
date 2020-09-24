@@ -61,13 +61,13 @@ def new(args):
 	if not args.mount.is_dir():
 		raise Exception("Path was a file. Must be directory")
 
-	if (not LayerSet.isInLayerset(args.setpath)):
 		debug("New from outside a layerset. Creating new setroot.")
+	if (not LayerSet.isInLayerset(args.layer_path)):
 		LayerSet.createSet(args.mount.resolve().absolute())
 	else:
 		debug("New from within a layerset. Creating new level.")
-		layerSet = LayerSet(args.setpath.absolute())
-		debug(f"Root set: {str(args.setpath)}")
+		layerSet = LayerSet(args.layer_path.absolute())
+		debug(f"Root set: {str(args.layer_path)}")
 		layerSet.createLayer(args.mount.resolve().absolute(), args.level)
 		debug(f"new level at: {str(args.mount)}")
 
@@ -75,4 +75,4 @@ def sync(args):
 	from LayerSet import LayerSet
 	from LayerSetConfig import LayerSetConfig
 
-	LayerSet(args.setpath).sync()
+	LayerSet(args.layer_path).sync()
