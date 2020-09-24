@@ -33,7 +33,7 @@ def mv(args):
 	maxLevel = len(layer.layers) - 1
 
 	# Move the file to the spesified level (Pass if none spesified)
-	if 'layer' in args:
+	if 'layer' in args and args.layer != -1:
 		layerid = args.layer
 		if type(layerid) == int:
 			# Move to the spesified layer
