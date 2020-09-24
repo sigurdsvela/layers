@@ -81,4 +81,37 @@ class TestSyncAndMove(TestCase):
 				(TEST_DIR / TEST_LEVEL_3 / TEST_LEVEL_3_FILE)
 			)
 		)
-		
+	
+	def test_moveUpDown(self):
+		os.chdir(TEST_DIR / TEST_LEVEL_1)
+		subprocess.Popen(["layers", "sync"]).wait()
+
+		# Move level_3 file one up
+		subprocess.Popen(["layers", "mv", "--up", TEST_LEVEL_3_FILE]).wait()
+
+		# Original should be on level2
+		self.assertFalse((TEST_DIR / TEST_LEVEL_2 / TEST_LEVEL_3_FILE).is_symlink())
+		# Check symlinks
+		self.assertTrue(
+			TestUtils.confirmLinkedSet(
+				(TEST_DIR / TEST_LEVEL_1 / TEST_LEVEL_3_FILE),
+				(TEST_DIR / TEST_LEVEL_2 / TEST_LEVEL_3_FILE),
+				(TEST_DIR / TEST_LEVEL_3 / TEST_LEVEL_3_FILE)
+			)
+		)
+
+		# Move level_1 file one down
+		# subprocess.Popen(["layers", "-l", TEST_DIR / TEST_LEVEL_1, "mv", "--down", TEST_LEVEL_1]).wait()
+
+		# # Original should be on level2
+		# self.assertFalse((TEST_DIR / TEST_LEVEL_2 / TEST_LEVEL_1_FILE).is_symlink())
+		# # Check symlinks
+		# self.assertTrue(
+		# 	TestUtils.confirmLinkedSet(
+		# 		(TEST_DIR / TEST_LEVEL_1 / TEST_LEVEL_1_FILE),
+		# 		(TEST_DIR / TEST_LEVEL_2 / TEST_LEVEL_1_FILE),
+		# 		(TEST_DIR / TEST_LEVEL_3 / TEST_LEVEL_1_FILE)
+		# 	)
+		# )
+
+
