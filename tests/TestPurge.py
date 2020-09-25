@@ -25,8 +25,6 @@ class TestPurge(BasicLayerCase):
 
 		# Remove about half of original files
 		for file in files[0:len(files)//2]:
-			if (str(file.path).startswith('.')):
-				continue
 			filesRemoved.append(file)
 			file.fullPath.unlink()
 

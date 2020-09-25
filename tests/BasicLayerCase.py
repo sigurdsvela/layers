@@ -1,4 +1,5 @@
 from LayerLocalPath import LayerLocalPath
+import GlobalConsts
 from unittest import TestCase
 from pathlib import Path
 import os
@@ -125,7 +126,7 @@ class BasicLayerCase(TestCase):
                     p = Path(root)/f
                     if p.is_file() and not p.is_symlink():
                         files.append(LayerLocalPath(layer=layerPath, path=p.relative_to(layerPath)))
-        return files
+        return [f for f in files if str(f.path) != GlobalConsts.LAYER_CONFIG_FILE]
 
 
     @property
