@@ -12,7 +12,7 @@ from Layer import Layer
 
 
 
-class TestCreateNewSet(TestCase):
+class TestCreateSets(TestCase):
 	def setUp(self):
 		TEST_DIR.mkdir()
 		os.chdir(TEST_DIR)
