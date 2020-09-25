@@ -1,3 +1,4 @@
+import traceback
 import argparse
 import os
 import sys
@@ -17,6 +18,15 @@ main.add_argument(
 	required=False,
 	default=os.getcwd(),
 	help='A path to the root of, or a file withing a layer. Designates the target layer to operate on, or the target layer-set.'
+)
+
+main.add_argument(
+	'--verbose', '-v',
+	action="store_const",
+	dest="verbose",
+	default=False,
+	const=True,
+	help="Print debug info"
 )
 
 ##################
@@ -140,6 +150,9 @@ except Exception as err:
 	message = "{0}".format(err)
 	if message == "":
 		message = "Unknown Error"
+	
+	if args.verbose:
+		traceback.print_exc(file=sys.stdout)
 	sys.exit(message)
 
 
