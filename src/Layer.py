@@ -99,11 +99,11 @@ class Layer:
 		for root, dirs, files in os.walk(self.path):
 			paths = files
 			paths.extend(dirs)
-			paths = [(root / Path(p)).relative_to(self.path) for p in paths]
+			paths = [LayerLocalPath(self.path, (root / Path(p)).relative_to(self.path)) for p in paths]
 			for fpath in paths:
-				if (self.path / fpath).is_symlink():
-					if not (self.path / fpath).resolve(strict=False).exists():
-						(self.path / fpath).unlink()
+				if fpath.fullPath.is_symlink():
+					if not fpath.fullPath.resolve(strict=False).exists():
+						fpath.fullPath.unlink()
 
 	def sync(self):
 		# Find the "baselayer". The layer, that all other layers .layers file point to
