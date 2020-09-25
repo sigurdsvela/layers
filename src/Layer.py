@@ -50,7 +50,7 @@ class Layer:
 		LayerConfig.create(layer)
 
 
-	def __init__(self, path):
+	def __init__(self, path: Path):
 		if not path.exists():
 			raise FileNotFoundError("Cant create Layer object for a non existent file. Use .crateSet or .createLayer")
 		if not path.is_dir():
