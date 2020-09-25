@@ -5,7 +5,7 @@ from Layer import Layer
 class LayerSet:
 	@classmethod
 	def fromLayer(cls, layer: Layer):
-		return cls(layer.config.path.resolve())
+		return cls(Layer(layer.config.path.resolve().parent))
 
 	def __init__(self, baseLayer: Layer):
 		self.baseLayer = baseLayer
@@ -21,7 +21,7 @@ class LayerSet:
 	# Purge the entire layer set
 	def purge(self):
 		for layerPath in self.baseLayer.layers:
-			Layer(layerPath).purge()
+			Layer(Path(layerPath)).purge()
 
 	# Merge layerset into target and remove the layers (Except the target)
 	def merge(self, target: Path):
