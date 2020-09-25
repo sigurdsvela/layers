@@ -5,7 +5,6 @@ import subprocess
 import os
 import TestUtils
 from testconst import *
-
 import GlobalConsts
 from Layer import Layer
 

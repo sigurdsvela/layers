@@ -4,8 +4,6 @@ import subprocess
 import os
 from unittest import TestCase
 import TestUtils
-
-
 import GlobalConsts
 from Layer import Layer
 
@@ -169,5 +167,3 @@ class TestSyncAndMove(TestCase):
 				(TEST_DIR / TEST_LEVEL_3 / TEST_LEVEL_3_FILE_NEWNAME)
 			)
 		)
-
-
