@@ -86,3 +86,12 @@ def sync(args):
 	from LayerConfig import LayerConfig
 
 	Layer(args.layer_path).sync()
+
+
+
+def purge(args):
+	from LayerSet import LayerSet
+	from Layer import Layer
+
+	LayerSet.fromLayer(Layer(args.layer_path)).purge()
+

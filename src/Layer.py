@@ -94,6 +94,17 @@ class Layer:
 		pass
 
 
+	# Remove all broken links from this layer
+	def purge(self):
+		for root, dirs, files in os.walk(self.path):
+			paths = files
+			paths.extend(dirs)
+			paths = [(root / Path(p)).relative_to(self.path) for p in paths]
+			for fpath in paths:
+				if (self.path / fpath).is_symlink():
+					if not (self.path / fpath).resolve(strict=False).exists():
+						(self.path / fpath).unlink()
+
 	def sync(self):
 		# Find the "baselayer". The layer, that all other layers .layers file point to
 		baseLayer = Layer(

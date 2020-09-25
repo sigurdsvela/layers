@@ -74,6 +74,12 @@ level.add_argument(
 	help="Add the new layer as the top level."
 )
 
+### Purge ###
+purge = subcommands.add_parser(
+	'purge',
+	help="Remove any broken link from the entire layerset connected to the target layer."
+)
+
 ### Move ###
 move = subcommands.add_parser(
 	'mv',
