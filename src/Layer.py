@@ -113,24 +113,17 @@ class Layer:
 				continue
 
 			for root, dirs, files in os.walk(llayerPath):
-				for name in files:
+				fpaths = dirs
+				fpaths.extend(files)
+				fpaths = [(root / Path(p)).relative_to(llayerPath) for p in fpaths]
+				for fpath in fpaths:
 					# Check that the original exists
-					if (llayerPath / name).is_symlink():
-						orig = (llayerPath / name).resolve(strict = False).absolute()
+					if (llayerPath/fpath).is_symlink():
+						orig = (llayerPath/fpath).resolve(strict = False).absolute()
 						if not orig.exists():
-							raise FileNotFoundError(f"Sync Failed: Original for '{name}' is missing.")
+							raise FileNotFoundError(f"Sync Failed: Original for '{fpath}' is missing.")
 					
 					# Make sure it is linked
-					Util.link(llayerPath, rlayerPath, name)
-
-				for name in dirs:
-					# Check that the original exists
-					if (llayer / name).is_symlink():
-						orig = (llayer / name).resolve(strict = False).absolute()
-						if not orig.exists():
-							raise FileNotFoundError(f"Sync Failed: Original for '{name}' is missing.")
-					
-					# Make sure it is linked
-					Util.link(llayer, baseLayer.path, name)
+					Util.link(llayerPath, rlayerPath, fpath)
 
 __all__ = 'Layer'
