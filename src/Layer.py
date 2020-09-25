@@ -3,6 +3,7 @@ from GlobalConsts import SET_CONFIG_FILE
 from pathlib import Path
 from Exceptions import InvalidLayersPathException
 from LayerConfig import LayerConfig
+from LayerLocalPath import LayerLocalPath
 import Util
 
 class Layer:
