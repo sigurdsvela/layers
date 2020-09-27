@@ -6,7 +6,7 @@ import argparse
 import os
 import sys
 import logging
-from layers.cli import commands
+from layers.cli import Runner, commands
 
 logLevel = logging.WARNING
 
@@ -75,12 +75,14 @@ if (len(rawArgs) == 0):
 	rawArgs = ['-h']
 
 args = main.parse_args(rawArgs)
-command_function = loadedCommands[args.command].run
+commandModule = loadedCommands[args.command]
+
+runner = Runner()
 
 try:
 	vargs = vars(args)
 	del vargs['command']
-	command_function(**vargs)
+	runner.run(command=commandModule, **vargs)
 except Exception as err:
 	message = "{0}".format(err)
 	if message == "":
