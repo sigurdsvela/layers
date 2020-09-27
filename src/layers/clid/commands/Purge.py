@@ -8,6 +8,8 @@ info = {
 	'help': 'help purge'
 }
 
+defaults = {}
+
 def setup(_: ArgumentParser):
 	pass
 

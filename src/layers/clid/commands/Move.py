@@ -11,6 +11,11 @@ info = {
 	"help": "Rename files, or move from a layer to another"
 }
 
+defaults = {
+	"level": None,
+	"new_path": None
+}
+
 def setup(parser: ArgumentParser):
 	from layers.cli import argtype
 	
@@ -64,7 +69,7 @@ def setup(parser: ArgumentParser):
 		nargs='?'
 	)
 
-def run(path, new_path, level, **kwargs):
+def run(path, level, new_path=None, **kwargs):
 	from layers.lib import LayerSet
 	import logging
 

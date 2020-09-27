@@ -6,12 +6,13 @@ from layers.lib import LayerSet
 import logging
 
 logger = logging.getLogger("layers:sync")
-logger.setLevel(logging.DEBUG)
 
 info = {
 	'name': 'sync',
 	'help': 'Sync files in a layerset, making sure everyfile is symbolically located in every layer'
 }
+
+defaults = {}
 
 def setup(_: ArgumentParser):
 	pass

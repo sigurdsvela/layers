@@ -3,7 +3,7 @@ from pathlib import Path
 import os
 import copy
 import subprocess
-
+from layers.cli import Runner, commands
 from layers.lib import GlobalConsts,LayerLocalPath,Layer,LayerSet
 
 TEST_ENV = Path('./tests/test-dir').resolve().absolute()
@@ -79,7 +79,7 @@ class BasicLayerCase(TestCase):
         os.chdir(TEST_ENV)
         # Make the layers
         for layerPath in layers:
-            subprocess.Popen(["layers", "-v", "-l", layers[0], "new", layerPath]).wait()
+            Runner().quiet().run(command=commands.New, level=-1, target_layer=layers[0], mount=layerPath)
 
 
     def tearDown(self):
@@ -115,7 +115,7 @@ class BasicLayerCase(TestCase):
         self.assertFalse(self.verify())
 
     def sync(self):
-        subprocess.Popen(["layers", "-v", "-l", self.layers[0].path, "sync"]).wait()
+        Runner().quiet().run(command=commands.Sync, target_layer=self.layers[0].path)
         return self.verify()
 
     def fsStruct(self, path=TEST_ENV, root=TEST_ENV):

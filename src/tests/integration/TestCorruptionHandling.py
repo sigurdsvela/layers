@@ -1,6 +1,7 @@
 import subprocess
 import os
 
+from layers.cli import Runner, commands
 from testlib.BasicLayerCase import BasicLayerCase
 
 class TestCorruptionHandling(BasicLayerCase):
@@ -11,6 +12,7 @@ class TestCorruptionHandling(BasicLayerCase):
 
 	def test_missingSymlink(self):
 		os.chdir(self.layers[0].path)
+		runner = Runner().quiet().applyDefaults()
 
 		#There should be no problems
 		file = self.filesIn(level=0)[0]
@@ -22,13 +24,14 @@ class TestCorruptionHandling(BasicLayerCase):
 		self.assertTrue(self.verify())
 
 		# Run sync
-		subprocess.Popen(["layers", "sync"]).wait()
+		runner.run(command=commands.Sync)
 
 		# The error is gone
 		self.assertFalse(self.verify())
 
 	def test_missingOriginal(self):
 		os.chdir(self.layers[0].path)
+		runner = Runner().quiet().applyDefaults()
 
 		#There should be a problem
 		file = self.filesIn(level=0)[0]
@@ -40,7 +43,7 @@ class TestCorruptionHandling(BasicLayerCase):
 		self.assertTrue(self.verify())
 
 		# Purge
-		subprocess.Popen(["layers", "purge"]).wait()
+		runner.run(command=commands.Purge)
 
 		# Error running sync
 		self.assertFalse(self.verify())

@@ -8,6 +8,10 @@ info = {
 	'help': ''
 }
 
+defaults = {
+	"level": -1
+}
+
 def setup(parser: ArgumentParser):
 	level = parser.add_mutually_exclusive_group()
 	level.add_argument(

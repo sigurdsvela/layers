@@ -1,5 +1,6 @@
 import subprocess
 from testlib.BasicLayerCase import BasicLayerCase
+from layers.lib import LayerLocalPath
 
 class TestPurge(BasicLayerCase):
 	def setUp(self):

@@ -1,45 +1,54 @@
 import layers.clid.commands
 import layers.clid.argtype
+from io import StringIO
+from argparse import ArgumentParser
 
 commands = layers.clid.commands
 argtype = layers.clid.argtype
 
 
-
 class Runner:
+	@classmethod
+	def globalDefaults(cls):
+		import os
+		return { 'target_layer': os.getcwd() }
 
 	def run(self, command, **kwargs):
 		import sys
-		import os
 
-		nullfh = None
-		if self._qstdout or self._qstderr:
-			nullfh = open(os.devnull, 'w')
-			self._stdout = nullfh if self._qstdout else self._stdout
-			self._stderr = nullfh if self._qstderr else self._stderr
+		_stdout = sys.stdout
+		_stdout = sys.stdout
 
-		with self._stdout as sys.stdout, self._stdin as sys.stdin, self._stderr as sys.stderr:
-			command.run(**kwargs)
+		if self._qstdout:
+			sys.stdout = StringIO()
 
-		if nullfh:
-			nullfh.close()
+		if self._qstderr:
+			sys.stdout = StringIO()
+
+		if self._defaults:
+			kwargs = dict(dict(__class__.globalDefaults(), **command.defaults), **kwargs)
+
+		try:
+			return command.run(**kwargs)
+		except Exception as e:
+			raise e
+		finally:
+			sys.stdout = _stdout
+			sys.stdout = _stdout
+
 
 	def __init__(self):
-		import sys
 		self._qstdout = False
 		self._qstderr = False
-		self._stdout = sys.stdout
-		self._stdin = sys.stdin
-		self._stderr = sys.stdin
+		self._stdout = None
+		self._stderr = None
+		self._defaults = False
 
 	def quiet(self, stdout=True, stderr=False):
 		self._qstdout = stdout
 		self._qstderr = stderr
-
-	def stdio(self, stdout = None, stdin = None, stderr = None):
-		if stdout is not None:
-			self._stdout = stdout
-		if stdin is not None:
-			self._stdin = stdin
-		if stderr is not None:
-			self._stderr = stderr
+		return self
+		
+	def applyDefaults(self):
+		self._defaults = True
+		return self
