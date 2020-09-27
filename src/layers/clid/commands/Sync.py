@@ -18,4 +18,13 @@ def setup(_: ArgumentParser):
 
 def run(target_layer: Path, **kwargs):
 	logger.debug("Running sync")
+
+	layerSet = LayerSet.fromLayer(Layer(target_layer))
+
+	print("Syncing layers:")
+	for layer in layerSet.layers:
+		print(" - " + str(layer.path))
+	
 	LayerSet.fromLayer(Layer(target_layer)).sync()
+
+	print("Done")
