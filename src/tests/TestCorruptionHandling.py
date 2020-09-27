@@ -1,14 +1,7 @@
-import sys
-from unittest import TestCase
-import unittest
 import subprocess
 import os
-from testconst import *
-from BasicLayerCase import BasicLayerCase
 
-import TestUtils
-from layers.lib import GlobalConsts
-from layers.lib import Layer
+from testlib.BasicLayerCase import BasicLayerCase
 
 class TestCorruptionHandling(BasicLayerCase):
 	def setUp(self):

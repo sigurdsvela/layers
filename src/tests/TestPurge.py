@@ -1,15 +1,5 @@
-import sys
-import unittest
 import subprocess
-import os
-from tests.testconst import TEST_DIR, TEST_LEVEL_1, TEST_LEVEL_2, TEST_LEVEL_3
-from unittest import TestCase
-from BasicLayerCase import BasicLayerCase
-
-
-from layers.lib import GlobalConsts as GC
-from layers.lib import Layer
-from layers.lib import LayerLocalPath
+from testlib.BasicLayerCase import BasicLayerCase
 
 class TestPurge(BasicLayerCase):
 	def setUp(self):

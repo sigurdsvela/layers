@@ -1,22 +1,6 @@
-import sys
-import unittest
 import subprocess
 import os
-from BasicLayerCase import BasicLayerCase
-import TestUtils
-
-from layers.lib import GlobalConsts
-from layers.lib import Layer
-
-from testconst import (
-	TEST_DIR,
-	TEST_LEVEL_1,
-	TEST_LEVEL_2,
-	TEST_LEVEL_3,
-	TEST_LEVEL_1_FILE,
-	TEST_LEVEL_2_FILE,
-	TEST_LEVEL_3_FILE
-)
+from testlib.BasicLayerCase import BasicLayerCase
 
 class TestSyncAndMove(BasicLayerCase):
 	def setUp(self):

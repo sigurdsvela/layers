@@ -1,4 +1,4 @@
-from BasicLayerCase import BasicLayerCase
+from testlib.BasicLayerCase import BasicLayerCase
 
 class TestBasicLayerCase(BasicLayerCase):
 	def setUp(self):
