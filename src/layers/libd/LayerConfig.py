@@ -52,11 +52,11 @@ class LayerConfig:
 		content = next(yaml.safe_load_all(fh.read()))
 		fh.close()
 		return content
+
 	@config.setter
 	def config(self, newconfig):
-		debug("Writing to config")
-		debug(newconfig)
-		return self._path.open('w').write(yaml.dump(newconfig))
+		(fh := self._path.open('w')).write(yaml.dump(newconfig))
+		fh.close()
 
 	@property
 	def path(self):
