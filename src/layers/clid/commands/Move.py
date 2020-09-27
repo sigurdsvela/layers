@@ -119,7 +119,7 @@ def run(path, new_path, level, **kwargs):
 			raise Exception(f"Cant move file to layer-level {level}")
 
 		logger.debug(f"Moving file. New layer level {newLevel}, at path {newLocalPath.inLevel(newLevel).layer.path}")
-		targetFile.path.rename(newLocalPath.inLevel(newLevel).path)
+		newLocalPath.path.rename(newLocalPath.inLevel(newLevel).path)
 
 	# Resync
 	logger.debug("Syncing layers")
