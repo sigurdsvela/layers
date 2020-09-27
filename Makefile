@@ -2,14 +2,16 @@ build:
 	# pyinstaller -F src/main.py --name layers
 	docker build . --tag layers
 
-run:
+run: clean
 	docker run -it layers
 
 test:
-	docker run -it layers "./tests/start_tests.sh"
-
+	docker run -it layers "./run_tests.sh"
+	
 clean:
-	rm -rf build
-	rm -rf dist
+	docker prune
+
+rm:
+	docker image rm -f layers
 
 	

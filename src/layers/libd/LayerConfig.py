@@ -1,22 +1,24 @@
-import Layer
-from GlobalConsts import SET_CONFIG_FILE
 import yaml
 from pathlib import Path
 import logging
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.ERROR)
 debug = logging.debug
 
+
+
 class LayerConfig:
 
 	@classmethod
 	def create(cls, path: Path):
+		from layers.lib import GlobalConsts
+
 		if path.exists() and not path.is_dir():
 			raise Exception("Cant create config file in non existent directory, or inside a file.")
 		
-		if (path / SET_CONFIG_FILE).exists():
+		if (path / GlobalConsts.SET_CONFIG_FILE).exists():
 			raise Exception("This directory is allready a registered layer")
 
-		cpath = path / SET_CONFIG_FILE
+		cpath = path / GlobalConsts.SET_CONFIG_FILE
 		cpath.touch(mode=0o660)
 		fh = cpath.open('w')
 		fh.write(yaml.dump({
@@ -25,7 +27,9 @@ class LayerConfig:
 		fh.close()
 
 	def __init__(self, path: Path):
-		self._path = path / SET_CONFIG_FILE
+		from layers.lib import GlobalConsts
+
+		self._path = (path / GlobalConsts.SET_CONFIG_FILE).resolve().absolute()
 		if not (self._path.is_file()):
 			raise Exception(f"Tried to create Config instance for path {path}, but could not find config file {self._path}")
 
@@ -34,7 +38,9 @@ class LayerConfig:
 
 	
 	def linkTo(self, path):
-		(path / SET_CONFIG_FILE).symlink_to(self._path)
+		from layers.lib import GlobalConsts
+
+		(path / GlobalConsts.SET_CONFIG_FILE).symlink_to(self._path)
 
 	@property
 	def layers(self):
@@ -42,7 +48,7 @@ class LayerConfig:
 
 	@property
 	def config(self):
-		fh = self._path.open('r')
+		fh = self.path.open('r')
 		content = next(yaml.safe_load_all(fh.read()))
 		fh.close()
 		return content

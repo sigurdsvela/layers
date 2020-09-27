@@ -1,0 +1,21 @@
+from argparse import ArgumentParser
+from pathlib import Path
+from layers.lib import Layer
+from layers.lib import LayerSet
+
+import logging
+
+logger = logging.getLogger("layers:sync")
+logger.setLevel(logging.DEBUG)
+
+info = {
+	'name': 'sync',
+	'help': 'Sync files in a layerset, making sure everyfile is symbolically located in every layer'
+}
+
+def setup(_: ArgumentParser):
+	pass
+
+def run(target_layer: Path, **kwargs):
+	logger.debug("Running sync")
+	LayerSet.fromLayer(Layer(target_layer)).sync()

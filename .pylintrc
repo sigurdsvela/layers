@@ -1,6 +1,6 @@
 [MASTER]
 
-init-hook='import sys; sys.path.append("./src")'
+init-hook='import sys; sys.path.append("./src"); sys.path.append("./src/lib")'
 
 # Specify a configuration file.
 #rcfile=
@@ -10,7 +10,7 @@ init-hook='import sys; sys.path.append("./src")'
 ignore=CVS
 
 # Pickle collected data for later comparisons.
-persistent=yes
+persistent=no
 
 # List of plugins (as comma separated values of python modules names) to load,
 # usually to register additional checkers.
@@ -58,6 +58,8 @@ disable=
     missing-docstring,
     protected-access,
     too-few-public-methods,
+    import-outside-toplevel,
+    logging-fstring-interpolation,
     # handled by black
     format
 

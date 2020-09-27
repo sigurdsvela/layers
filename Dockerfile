@@ -7,8 +7,8 @@ RUN apt update && \
       apt -y install sudo
 
 RUN apt install -y python3-pip
-
 RUN apt install -y vim nano
+RUN apt install -y make
 
 RUN useradd -m docker && echo "docker:docker" | chpasswd && adduser docker sudo
 RUN printf '\ndocker ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
