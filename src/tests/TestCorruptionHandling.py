@@ -46,8 +46,8 @@ class TestCorruptionHandling(BasicLayerCase):
 		# Confirm the error
 		self.assertTrue(self.verify())
 
-		# Run sync
-		rtrn = subprocess.Popen(["layers", "sync"]).wait()
+		# Purge
+		subprocess.Popen(["layers", "purge"]).wait()
 
 		# Error running sync
-		self.assertNotEqual(rtrn, 0)
+		self.assertFalse(self.verify())
