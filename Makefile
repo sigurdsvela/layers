@@ -7,9 +7,9 @@ run: clean
 
 test:
 	docker run -it layers "./run_tests.sh"
-	
+
 clean:
-	docker prune
+	docker system prune -f
 
 rm:
 	docker image rm -f layers
