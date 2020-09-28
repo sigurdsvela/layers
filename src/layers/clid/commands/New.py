@@ -50,12 +50,16 @@ def run(target_layer: Path, mount: Path, level, **kwargs):
 
 	if not mount.exists():
 		mount.mkdir()
+
+	print(f"Creating a new layer at {mount}")
 	
 	if not mount.is_dir():
 		raise Exception("Target mount is a file. Must be directory")
 
 	if (not Layer.isInLayer(target_layer)):
+		print("No target set. Creating as a new layerset.")
 		Layer.createSet(mount.resolve().absolute())
 	else:
+		print(f"Creating as part of the same layerset as {target_layer}")
 		layer = Layer(target_layer.absolute())
 		layer.createLayer(mount.resolve().absolute(), level)

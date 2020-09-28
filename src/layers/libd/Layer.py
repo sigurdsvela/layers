@@ -1,3 +1,4 @@
+from __future__ import annotations
 import os
 from pathlib import Path
 from typing import Union
@@ -79,6 +80,20 @@ class Layer:
 		self._config.linkTo(layer)
 		self._config.addLayer(layer, level)
 
+	def findPurelyDerivativeDirs(self, path=None):
+		if path is None:
+			path = LayerLocalPath(self.path)
+		
+		derivdirs = []
+		dirs = path.listdir(files=False, dirs=True, symlinks=False)
+		for d in dirs:
+			if len(d.listdir(symlinks=False)) == 0:
+				derivdirs.append(d)
+			else:
+				derivdirs.extend(self.findPurelyDerivativeDirs(d))
+		
+		return derivdirs
+
 	@property
 	def level(self):
 		return self._config.layers.index(str(self.path))
@@ -131,7 +146,7 @@ class Layer:
 	def __str__(self) -> str:
 		return str(self.path)
 
-	def __eq__(self, other) -> bool:
+	def __eq__(self, other: Layer) -> bool:
 		if not isinstance(other, __class__):
 			return False
 		return self.path.absolute().samefile(other.path.absolute())

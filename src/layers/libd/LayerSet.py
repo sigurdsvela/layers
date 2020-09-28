@@ -2,9 +2,6 @@ from pathlib import Path
 from layers.lib import Layer, Exceptions
 import logging
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.WARNING)
-
 # Represents a set of layers in a layer set
 class LayerSet:
 	@classmethod
@@ -19,7 +16,7 @@ class LayerSet:
 		pass
 
 	@property
-	def layers(self):
+	def layers(self) -> [Layer]:
 		return self.baseLayer.layers
 
 	@property
@@ -34,8 +31,24 @@ class LayerSet:
 			files.extend(layer.files)
 		return files
 
+	@property
+	def dirs(self):
+		dirs = []
+		for layer in self.layers:
+			dirs.extend(layer.dirs)
+		return dirs
+
+	def links(self, toFiles = False, toDirs = False):
+		links = []
+		for layer in self.layers:
+			links.extend(layer.links(toFiles=toFiles, toDirs=toDirs))
+		return links
+
 	# Sync the entire layer set
 	def sync(self):
+		from layers.lib import LayerLocalPath
+		logger = logging.getLogger(".".join([__name__, __file__, str(__class__), "sync"]))
+		
 		logger.debug(f"Syncing {len(self.files)} files in {len(self.layers)} layers")
 		files = self.files
 		for f in files:
@@ -58,6 +71,25 @@ class LayerSet:
 					while not p.inLayer(layer).path.parent.exists():
 						p = p.parent
 					p.inLayer(layer).path.symlink_to(p.path)
+		
+		# Finally, we will check the directory structure of
+		# Each of the layers, looking for any directory with ONLY
+		# symlinks.
+		# Any such directory can then simply be a symlink in itself
+		# directory to that directory in another layer
+		for layer in self.layers:
+			derivdirs = layer.findPurelyDerivativeDirs()
+			for ddir in derivdirs:
+				ddirls = ddir.listdir()
+				origin = ddirls[0].origin.parent
+
+				for link in ddir.listdir():
+					assert(link.isSymlink())
+					link.unlink()
+
+				ddir.rmdir()
+				ddir.symlinkTo(layer=origin.layer)
+
 
 	# Purge the entire layer set
 	def purge(self):

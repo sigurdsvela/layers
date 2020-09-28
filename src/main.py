@@ -8,16 +8,7 @@ import sys
 import logging
 from layers.cli import Runner, commands
 
-logLevel = logging.WARNING
 
-root = logging.getLogger()
-
-handler = logging.StreamHandler(sys.stdout)
-root.setLevel(logLevel)
-handler.setLevel(logLevel)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-root.addHandler(handler)
 
 main = argparse.ArgumentParser(
 	prog="layers",

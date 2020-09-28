@@ -3,10 +3,22 @@ import layers.clid.argtype
 from io import StringIO
 from argparse import ArgumentParser
 from pathlib import Path
+import logging
+import sys
 
 commands = layers.clid.commands
 argtype = layers.clid.argtype
 
+logLevel = logging.WARNING
+
+root = logging.getLogger()
+
+handler = logging.StreamHandler(sys.stdout)
+root.setLevel(logLevel)
+handler.setLevel(logLevel)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+root.addHandler(handler)
 
 class Runner:
 	@classmethod

@@ -15,7 +15,7 @@ class TestMove(BasicLayerCase):
 	def test_moveUpDown(self):
 		import contextlib
 		os.chdir(self.layers[0].path)
-		runner = Runner().applyDefaults()
+		runner = Runner().quiet().applyDefaults()
 
 		testFile = self.filesIn(level=2)[0]
 
@@ -32,7 +32,7 @@ class TestMove(BasicLayerCase):
 		
 
 	def test_moveTopBottom(self):
-		runner = Runner().applyDefaults()
+		runner = Runner().quiet().applyDefaults()
 		os.chdir(self.layers[0].path)
 		
 		testFile = self.filesIn(level=-1)[0]
@@ -50,7 +50,7 @@ class TestMove(BasicLayerCase):
 
 	def test_renameFile(self):
 		os.chdir(self.layers[0].path)
-		runner = Runner().applyDefaults()
+		runner = Runner().quiet().applyDefaults()
 
 		testFile = self.files[0]
 		newName = '46031CAD-C9C0-4E79-9BCA-AF9C876C3EC0'
@@ -69,7 +69,7 @@ class TestMove(BasicLayerCase):
 
 	def test_moveFileBelowBottomLayer(self):
 		os.chdir(self.layers[0].path)
-		runner = Runner().applyDefaults()
+		runner = Runner().quiet().applyDefaults()
 		testFile = self.filesIn(level=-1)[0]
 		self.assertFalse(testFile.path.is_symlink())
 		runner.run(command=commands.Move, level='down', path=testFile.path)
@@ -77,7 +77,7 @@ class TestMove(BasicLayerCase):
 
 	def test_moveFileAboveTopLayer(self):
 		os.chdir(self.layers[0].path)
-		runner = Runner().applyDefaults()
+		runner = Runner().quiet().applyDefaults()
 		testFile = self.filesIn(level=0)[0]
 		self.assertFalse(testFile.path.is_symlink())
 		runner.run(command=commands.Move, level='up', path=testFile.path)
@@ -85,7 +85,6 @@ class TestMove(BasicLayerCase):
 
 	def test_moveFileToSymlinkedDirectory(self):
 		from layers.lib import LayerLocalPath
-		self.printFsStruct()
 		# Find the symlinks that point to a directory
 		symdirs:[LayerLocalPath] = self.dirlinks
 		# Find the ones that themselves contain a directory
@@ -103,6 +102,7 @@ class TestMove(BasicLayerCase):
 		filetarget = filetargets[0]
 
 		os.chdir(self.layers[0].path)
-		runner = Runner().applyDefaults()
+		runner = Runner().quiet().applyDefaults()
 		runner.run(command=commands.Move, path=dirtarget, level=symdir.layer.level)
 		runner.run(command=commands.Move, path=filetarget, level=symdir.layer.level)
+

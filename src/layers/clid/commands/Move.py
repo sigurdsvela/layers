@@ -76,48 +76,24 @@ def run(target_layer, path, level, new_path=None, **kwargs):
 	level = argtype.level(target_layer, path)(level)
 
 	targetPath = LayerLocalPath(path.absolute())
-	targetFile = targetPath.original
-	newPath = None
+	targetOrigin = targetPath.origin
+	newOrigin = targetOrigin
 	
 	print(f"Moving {targetPath.localPath} ", end="")
 	if level is not None:
 		print(f"from level {targetPath.layer.level} to {level}", end="")
+		newOrigin = newOrigin.inLevel(level)
 
 	if level is not None and new_path is not None:
 		print(" and ", end="")
 
 	if new_path is not None:
-		newPath = LayerLocalPath(new_path.absolute())
-		print(f"to {newPath.localPath}", end="")
+		newOrigin = newOrigin.withLocalPath(new_path.absolute().relative_to(targetOrigin.layer.path))
+		print(f"to {newOrigin.localPath}", end="")
+	
+
 	print()
 
-	for layer in targetFile.layer.layers:
-		if (p := targetFile.inLayer(layer).path).is_symlink():
-			p.unlink()
-
-	if newPath is not None:
-		targetFile.path.rename(
-			(targetFile := targetFile.withLocalPath(newPath.localPath)).path
-		)
-
-	if level is not None:
-		newPath = targetFile.inLevel(level)
-		newLayer = newPath.layer
-
-		# Here, we check if the destination layer actually has a directory for the file
-		# 'Layers' will link a directory directly, if it can.
-		# However, this means that if we try to move a file that is INSIDE that directory,
-		# TO the layer that only has a symlink for that folder, we must first remove that symlink
-		# and create the directory.
-		symcheck = Path(newLayer.path)
-		for part in newPath.localPath.parent.parts:
-			if (symcheck := (symcheck/part)).is_symlink():
-				symcheck.unlink()
-			if not symcheck.exists():
-				symcheck.mkdir()
-		
-		targetFile.path.rename(newPath.path)
-		targetFile = newPath
-
-	LayerSet(targetFile.layer).sync()
+	targetOrigin.move(newOrigin)
+	LayerSet(newOrigin.layer).sync()
 
