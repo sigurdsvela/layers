@@ -218,6 +218,18 @@ class BasicLayerCase(TestCase):
                         files.append(LayerLocalPath(layer=layerPath, path=p.relative_to(layerPath)))
         return [f for f in files if str(f.localPath) != GlobalConsts.LAYER_CONFIG_FILE]
 
+    @property
+    def dirlinks(self) -> [LayerLocalPath]:
+        files:[LayerLocalPath] = []
+        for layer in TEST_STRUCT['layers']:
+            layerPath = (TEST_ENV / layer).absolute()
+            for root, dirs, _files in os.walk(layerPath):
+                for f in dirs:
+                    p = Path(root)/f
+                    if p.is_symlink():
+                        files.append(LayerLocalPath(layer=layerPath, path=p.relative_to(layerPath)))
+        return [f for f in files if str(f.localPath) != GlobalConsts.LAYER_CONFIG_FILE]
+
 
     def filesIn(self, level:int) -> [LayerLocalPath]:
         files:[LayerLocalPath] = []

@@ -75,6 +75,10 @@ class LayerLocalPath:
 		return Layer(self._layerPath)
 
 	@property
+	def original(self):
+		return __class__(self.path.resolve().absolute())
+
+	@property
 	def layerPath(self) -> Path:
 		return self._layerPath
 

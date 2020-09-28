@@ -69,63 +69,55 @@ def setup(parser: ArgumentParser):
 		nargs='?'
 	)
 
-def run(path, level, new_path=None, **kwargs):
-	from layers.lib import LayerSet
-	import logging
+def run(target_layer, path, level, new_path=None, **kwargs):
+	from layers.lib import LayerSet, Layer, LayerLocalPath
+	from layers.cli import argtype
 
-	logger = logging.getLogger('layers-mv')
+	level = argtype.level(target_layer, path)(level)
+
+	targetPath = LayerLocalPath(path.absolute())
+	targetFile = targetPath.original
+	newPath = None
 	
-	logger.debug("Running 'move' with args:")
-	logger.debug(f"path={path}, newpath={new_path}, level={level}")
+	print(f"Moving {targetPath.localPath} ", end="")
+	if level is not None:
+		print(f"from level {targetPath.layer.level} to {level}", end="")
 
-	targetFile = LayerLocalPath(path.absolute())
-
-	# The layer the file is currently in
-	currentLayer = Layer(Layer.findRoot(
-		targetFile.path.resolve().absolute()
-	))
-
-	logger.debug(f"Original file in level in {currentLayer.level}=({str(currentLayer.path)})/{targetFile.localPath}")
-
-	# Remove all links to the file from other layers
-	for layer in currentLayer.layers:
-		if targetFile.inLayer(layer).path.is_symlink():
-			targetFile.inLayer(layer).path.unlink()
-	
-
-	newLocalPath = targetFile
+	if level is not None and new_path is not None:
+		print(" and ", end="")
 
 	if new_path is not None:
-		newLocalPath = newLocalPath.withLocalPath(LayerLocalPath(new_path.absolute()).localPath)
+		newPath = LayerLocalPath(new_path.absolute())
+		print(f"to {newPath.localPath}", end="")
+	print()
 
-	# Rename the original
-	if newLocalPath.path != targetFile.path:
-		logger.debug(f"Renaming file: {str(targetFile.path)} -> {str(newLocalPath.path)}")
-		(targetFile.path).rename(newLocalPath.path)
+	for layer in targetFile.layer.layers:
+		if (p := targetFile.inLayer(layer).path).is_symlink():
+			p.unlink()
 
-	currentLevel = currentLayer.level
-	maxLevel = len(currentLayer.layers) - 1
-	newLevel = currentLevel
+	if newPath is not None:
+		targetFile.path.rename(
+			(targetFile := targetFile.withLocalPath(newPath.localPath)).path
+		)
 
-	# Move the file to the spesified level (Pass if none spesified)
 	if level is not None:
-		# Move to the spesified layer
-		if type(level) == int:
-			newLevel = max(min(level, 0), maxLevel)
-		elif level == 'up':
-			newLevel = max(currentLevel - 1, 0)
-		elif level == 'down':
-			newLevel = min(currentLevel + 1, maxLevel)
-		elif level == 'top':
-			newLevel = 0
-		elif level == 'bottom':
-			newLevel = maxLevel
-		else:
-			raise Exception(f"Cant move file to layer-level {level}")
+		newPath = targetFile.inLevel(level)
+		newLayer = newPath.layer
 
-		logger.debug(f"Moving file. New layer level {newLevel}, at path {newLocalPath.inLevel(newLevel).layer.path}")
-		newLocalPath.path.rename(newLocalPath.inLevel(newLevel).path)
+		# Here, we check if the destination layer actually has a directory for the file
+		# 'Layers' will link a directory directly, if it can.
+		# However, this means that if we try to move a file that is INSIDE that directory,
+		# TO the layer that only has a symlink for that folder, we must first remove that symlink
+		# and create the directory.
+		symcheck = Path(newLayer.path)
+		for part in newPath.localPath.parent.parts:
+			if (symcheck := (symcheck/part)).is_symlink():
+				symcheck.unlink()
+			if not symcheck.exists():
+				symcheck.mkdir()
+		
+		targetFile.path.rename(newPath.path)
+		targetFile = newPath
 
-	# Resync
-	logger.debug("Syncing layers")
-	LayerSet.fromLayer(currentLayer).sync()
+	LayerSet(targetFile.layer).sync()
+

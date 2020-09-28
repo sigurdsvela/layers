@@ -2,6 +2,7 @@ import layers.clid.commands
 import layers.clid.argtype
 from io import StringIO
 from argparse import ArgumentParser
+from pathlib import Path
 
 commands = layers.clid.commands
 argtype = layers.clid.argtype
@@ -11,7 +12,7 @@ class Runner:
 	@classmethod
 	def globalDefaults(cls):
 		import os
-		return { 'target_layer': os.getcwd() }
+		return { 'target_layer': Path(os.getcwd()) }
 
 	def run(self, command, **kwargs):
 		import sys

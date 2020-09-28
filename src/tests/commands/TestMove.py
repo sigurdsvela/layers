@@ -15,7 +15,7 @@ class TestMove(BasicLayerCase):
 	def test_moveUpDown(self):
 		import contextlib
 		os.chdir(self.layers[0].path)
-		runner = Runner()
+		runner = Runner().applyDefaults()
 
 		testFile = self.filesIn(level=2)[0]
 
@@ -61,9 +61,48 @@ class TestMove(BasicLayerCase):
 			self.printFsStruct()
 			raise e
 		
-
-
 		self.assertFalse(testFile.path.exists())
 		self.assertTrue(testFile.withName(newName).path.exists())
 
 		self.assertVerify()
+
+
+	def test_moveFileBelowBottomLayer(self):
+		os.chdir(self.layers[0].path)
+		runner = Runner().applyDefaults()
+		testFile = self.filesIn(level=-1)[0]
+		self.assertFalse(testFile.path.is_symlink())
+		runner.run(command=commands.Move, level='down', path=testFile.path)
+		self.assertFalse(testFile.path.is_symlink())
+
+	def test_moveFileAboveTopLayer(self):
+		os.chdir(self.layers[0].path)
+		runner = Runner().applyDefaults()
+		testFile = self.filesIn(level=0)[0]
+		self.assertFalse(testFile.path.is_symlink())
+		runner.run(command=commands.Move, level='up', path=testFile.path)
+		self.assertFalse(testFile.path.is_symlink())
+
+	def test_moveFileToSymlinkedDirectory(self):
+		from layers.lib import LayerLocalPath
+		self.printFsStruct()
+		# Find the symlinks that point to a directory
+		symdirs:[LayerLocalPath] = self.dirlinks
+		# Find the ones that themselves contain a directory
+		symdirs = [s for s in symdirs if [p for p in s.path.glob('*') if p.is_dir()]]
+		# And a file
+		symdirs = [s for s in symdirs if [p for p in s.path.glob('*') if p.is_file()]]
+		# Pick any
+		symdir = symdirs[0]
+		# Fileter for directories
+		dirtargets = [t for t in symdir.path.resolve().glob('*') if t.resolve().is_dir()]
+		# Fileter for files
+		filetargets = [t for t in symdir.path.resolve().glob('*') if t.resolve().is_file()]
+
+		dirtarget = dirtargets[0]
+		filetarget = filetargets[0]
+
+		os.chdir(self.layers[0].path)
+		runner = Runner().applyDefaults()
+		runner.run(command=commands.Move, path=dirtarget, level=symdir.layer.level)
+		runner.run(command=commands.Move, path=filetarget, level=symdir.layer.level)
