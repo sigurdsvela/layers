@@ -72,6 +72,7 @@ def setup(parser: ArgumentParser):
 def run(target_layer, path, level, new_path=None, **kwargs):
 	from layers.lib import LayerSet, Layer, LayerLocalPath
 	from layers.cli import argtype
+	from layers.lib import process
 
 	level = argtype.level(target_layer, path)(level)
 
@@ -81,8 +82,8 @@ def run(target_layer, path, level, new_path=None, **kwargs):
 	
 	print(f"Moving {targetPath.localPath} ", end="")
 	if level is not None:
-		print(f"from level {targetPath.layer.level} to {level}", end="")
 		newOrigin = newOrigin.inLevel(level)
+		print(f"from level {targetPath.layer.level} to {level}", end="")
 
 	if level is not None and new_path is not None:
 		print(" and ", end="")
@@ -90,10 +91,9 @@ def run(target_layer, path, level, new_path=None, **kwargs):
 	if new_path is not None:
 		newOrigin = newOrigin.withLocalPath(new_path.absolute().relative_to(targetOrigin.layer.path))
 		print(f"to {newOrigin.localPath}", end="")
-	
-
 	print()
-
-	targetOrigin.move(newOrigin)
+	
+	print(f"{str(targetOrigin)} -> {str(newOrigin)}")
+	process.LayerFileMoveProcess(fromFile=targetOrigin, toFile=newOrigin).start().wait()
 	LayerSet(newOrigin.layer).sync()
 

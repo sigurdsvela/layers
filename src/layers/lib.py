@@ -6,3 +6,4 @@ from layers.libd.LayerLocalPath import LayerLocalPath
 from layers.libd.LayerConfig import LayerConfig
 from layers.libd.Layer import Layer
 from layers.libd.LayerSet import LayerSet
+from layers.libd import Process as process

@@ -85,21 +85,28 @@ class LayerLocalPath:
 		else:
 			raise TypeError("Invalid function signature")
 
-	def moveToPathAndLayer(self, withLocalPath=None, inLayer=None):
+
+	def moveToPathAndLayer(self, path=None, layer=None):
+		from layers.lib import Exceptions
+
 		# Moves the origin file to a new path and layer
 		import logging
 		logger = logging.getLogger(".".join([__name__, __file__, str(__class__), "move"]))
 
 		# Nothing specified, nothing ot do
-		if withLocalPath is None and inLayer is None:
+		if path is None and layer is None:
 			logger.debug("both path and layer argument was empty. Nothing to do.")
 			return self
 
-		path = withLocalPath if withLocalPath is not None else self.localPath
-		targetLayer = inLayer if inLayer is not None else self.layer
-		newOrigin = self.inLayer(targetLayer).withLocalPath(path)
 		origin = self.origin
-		logger.debug(f"target:{origin}, new local path:{path}, new layer: {targetLayer.path}")
+		newOrigin = origin
+
+		if path is not None:
+			newOrigin = newOrigin.withLocalPath(path)
+		if layer is not None:
+			newOrigin = newOrigin.inLayer(layer)
+
+		logger.debug(f"target:{origin}, new local path:{path}, new layer: {newOrigin.layer.path}")
 		logger.debug(f"origin:{origin}, newOrigin:{newOrigin}")
 
 		if origin == newOrigin:
@@ -107,15 +114,23 @@ class LayerLocalPath:
 			return
 
 		# Check that the target location is not occupied
-		if newOrigin.exists() and newOrigin.isOrigin():
+		# Which it is if there is a file there, and that
+		# files origin is not ours
+		if newOrigin.exists() and newOrigin.origin != origin:
 			raise FileExistsError(f"Cannot move file {origin} to {newOrigin}. File exists.")
+
+		# Check for out of sync condition
+		# We need to make sure that the target origin local path
+		# does not exist in a any of the layers.
+		for layer in self.layer.layers:
+			if (p := newOrigin.inLayer(layer).origin).exists() and p != origin:
+				raise Exceptions.FileConflictError("Filetree out of sync!")
 
 		# Check that the directory structure
 		# exists in the target layer (Is not just symlinked)
-		localParent = newOrigin.getLocalParent()
-		linked = localParent.stepTowards(newOrigin)
+		linked = newOrigin.getLocalParent().stepTowards(newOrigin)
 		assert(linked.isSymlink() or not linked.exists())
-		if linked.isDir():
+		if linked != newOrigin:
 			logger.debug("Target origin path was symlinked. Creating directory structure")
 			logger.debug(f"- unlink {linked}")
 			linked.unlink()
@@ -129,13 +144,13 @@ class LayerLocalPath:
 				origin.inLayer(layer).unlink()
 
 		# Move the file
-		logger.debug("Copying the file to the spesified location with .inProgress suffix.")
+		logger.debug("Copying the file to the spesified location.")
 		if origin.isDir():
-			shutil.copytree(origin.path, (tmpOrigin := newOrigin.withName(newOrigin.name + ".inProgress")).path)
+			shutil.copytree(origin.path, newOrigin.path)
 		else:
-			shutil.copy(origin.path, (tmpOrigin := newOrigin.withName(newOrigin.name + ".inProgress")).path)
+			shutil.copy(origin.path, newOrigin.path)
 		
-		assert(tmpOrigin.path.exists())
+		assert(newOrigin.path.exists())
 		# Todo. Confirm checksum of new file
 		logger.debug("Everything seems ok.")
 		if origin.isDir():
@@ -144,9 +159,6 @@ class LayerLocalPath:
 		else:
 			logger.debug("Deleting the original file.")
 			origin.unlink(force=True)
-
-		logger.debug("Removing .inProgress suffix.")
-		tmpOrigin.path.rename(newOrigin.path)
 
 		logger.debug("Creating links to the new origin file")
 		for layer in self.layer.layers:

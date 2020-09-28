@@ -27,6 +27,10 @@ class Runner:
 		return { 'target_layer': Path(os.getcwd()) }
 
 	def run(self, command, **kwargs):
+		logger = logging.getLogger(".".join([__name__, "Runner"]))
+		
+		logger.debug(f"Running command {command} with args: ")
+		logger.debug(kwargs)
 		import sys
 
 		_stdout = sys.stdout
