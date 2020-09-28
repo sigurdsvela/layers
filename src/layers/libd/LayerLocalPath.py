@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Union
 import os
+import shutil
 
 class LayerLocalPath:
 	
@@ -121,21 +122,37 @@ class LayerLocalPath:
 			logger.debug(f"- mkdir {linked}")
 			linked.path.mkdir(parents=True, exist_ok=True)
 
+
 		logger.debug("Removing links to the previous origin file")
-		# Remove links to the origin file
 		for layer in self.layer.layers:
 			if origin.inLayer(layer).isSymlink():
 				origin.inLayer(layer).unlink()
 
 		# Move the file
-		logger.debug("Moving the file to the spesified location.")
-		self.origin.path.rename(newOrigin.path)
+		logger.debug("Copying the file to the spesified location with .inProgress suffix.")
+		if origin.isDir():
+			shutil.copytree(origin.path, (tmpOrigin := newOrigin.withName(newOrigin.name + ".inProgress")).path)
+		else:
+			shutil.copy(origin.path, (tmpOrigin := newOrigin.withName(newOrigin.name + ".inProgress")).path)
+		
+		assert(tmpOrigin.path.exists())
+		# Todo. Confirm checksum of new file
+		logger.debug("Everything seems ok.")
+		if origin.isDir():
+			logger.debug("Deleting the original directory.")
+			shutil.rmtree(origin.path)
+		else:
+			logger.debug("Deleting the original file.")
+			origin.unlink(force=True)
 
-		# Create the new links
+		logger.debug("Removing .inProgress suffix.")
+		tmpOrigin.path.rename(newOrigin.path)
+
 		logger.debug("Creating links to the new origin file")
 		for layer in self.layer.layers:
 			if layer != newOrigin.layer:
 				newOrigin.inLayer(layer).symlinkTo(newOrigin.layer)
+		
 		logger.debug("Done.")
 		return newOrigin
 
@@ -218,6 +235,10 @@ class LayerLocalPath:
 	@property
 	def localPath(self) -> Path:
 		return self._localPath
+
+	@property
+	def name(self) -> str:
+		return self.localPath.name
 
 	@property
 	def path(self) -> Path:
