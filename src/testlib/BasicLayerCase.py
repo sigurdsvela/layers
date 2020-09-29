@@ -4,7 +4,7 @@ import os
 import copy
 import subprocess
 from layers.cli import Runner, commands
-from layers.lib import GlobalConsts,LayerLocalPath,Layer,LayerSet
+from layers.lib import GlobalConsts,LayerFile,Layer,LayerSet,UserConfig,Level
 
 TEST_ENV = Path('./tests/test-dir').resolve().absolute()
 TEST_STRUCT = {
@@ -62,6 +62,8 @@ class BasicLayerCase(TestCase):
     def setUp(self):
         layers:[Path] = [TEST_ENV / layerPath for layerPath in TEST_STRUCT['layers']]
 
+        self._config = UserConfig.forCurrentUser()
+
         # Create testenv dir, and go in
         try:
             self._prev_cwd = Path(os.getcwd()).absolute()
@@ -74,48 +76,49 @@ class BasicLayerCase(TestCase):
         # Make filestructur
         self._mkfs(TEST_ENV, TEST_STRUCT['paths'])
 
-
         # Chdir to root of new fs
         os.chdir(TEST_ENV)
+
+        # make the 'root' layer set
+        self.runCommand(command=commands.NewSet, name='root')
+
         # Make the layers
         for layerPath in layers:
-            Runner().quiet().run(command=commands.New, level=-1, target_layer=layers[0], mount=layerPath)
+            self.runCommand(command=commands.New, level=Level.BOTTOM, mount=layerPath)
 
 
     def tearDown(self):
         os.chdir(self._prev_cwd)
         subprocess.Popen(["rm", "-rf", TEST_ENV]).wait()
 
+    def runCommand(self, command, **kwargs):
+        Runner().quiet().applyDefaults().run(command=command, target_set=self.testLayerSet, **kwargs)
+
     def verify(self) -> [Exception]:
         errors = []
         # Verify that all files are linked to all layers
         for f in self.files:
-            for layer in f.layer.layers:
-                if layer.path != f.layer.path:
-                    if not f.inLayer(layer).path.resolve().absolute().exists():
-                        errors.append(FileNotFoundError(f"Layer {layer.level}@{layer.path} missing link to {f.localPath} in layer {f.layer.level}@{f.layer.path}"))
-                    if f.inLayer(layer).path.resolve().absolute() != f.path.resolve().absolute():
-                        errors.append(FileNotFoundError(f"Layer {layer.level}@{layer.path} and {f.layer.level}@{f.layer.path} has conflicting content for file {f.localPath}"))
+            for layer in f.layer.siblings:
+                if layer.root != f.layer.root:
+                    if not f.inLayer(layer).absolute.resolve().absolute().exists():
+                        errors.append(FileNotFoundError(f"Layer {layer.level}@{layer.root} missing link to {f.absolute} in layer {f.layer.level}@{f.layer.root}"))
+                    if f.inLayer(layer).absolute.resolve().absolute() != f.absolute.resolve().absolute():
+                        errors.append(FileNotFoundError(f"Layer {layer.level}@{layer.root} and {f.layer.level}@{f.layer.root} has conflicting content for file {f.path}"))
 
         # Verify that all links point to the same, and a valid and present file
         for l in self.links:
-            if not l.path.resolve(strict=False).exists():
-                errors.append(FileNotFoundError(f"Broken link in layer {l.layer.level}@{l.layer.path} file {l.localPath} -> {l.path.resolve(strict=False)}"))
+            if not l.absolute.resolve(strict=False).exists():
+                errors.append(FileNotFoundError(f"Broken link in layer {l.layer.level}@{l.layer.root} file {l.path} -> {l.path.resolve(strict=False)}"))
 
         # Verify all .layers config files
-        baseConfig = LayerSet.fromLayer(self.layers[0]).baseLayer.config.path
-
-        for layer in self.layers:
-            if not baseConfig == layer.config.path.resolve():
-                errors.append(FileNotFoundError(f"Layer {layer.level}@{layer.path} config file does not link to baselayer."))
-
+        # TODO Verify Config
         return errors
 
     def assertVerify(self):
         self.assertFalse(self.verify())
 
     def sync(self):
-        Runner().quiet().run(command=commands.Sync, target_layer=self.layers[0].path)
+        self.runCommand(command=commands.Sync)
         return self.verify()
 
     def fsStruct(self, path=TEST_ENV, root=TEST_ENV):
@@ -193,55 +196,58 @@ class BasicLayerCase(TestCase):
         print()
         self.printStruct(self.fsStruct())
 
+    @property
+    def testLayerSet(self):
+        if len(self.config.layerSets) > 0:
+            return self.config.layerSets[0]
+        else:
+            return None
+
+    @property
+    def config(self):
+        return self._config
    
     @property
-    def files(self) -> [LayerLocalPath]:
-        files:[LayerLocalPath] = []
-        for layer in TEST_STRUCT['layers']:
-            layerPath = (TEST_ENV / layer).absolute()
-            for root, dirs, _files in os.walk(layerPath):
+    def files(self) -> [LayerFile]:
+        files:[LayerFile] = []
+        for layerPath in TEST_STRUCT['layers']:
+            layer = self.config.layer(withRoot=self.root/layerPath)
+            for root, dirs, _files in os.walk(layer.root):
                 for f in _files:
                     p = Path(root)/f
                     if p.is_file() and not p.is_symlink():
-                        files.append(LayerLocalPath(layer=layerPath, path=p.relative_to(layerPath)))
-        return [f for f in files if str(f.localPath) != GlobalConsts.LAYER_CONFIG_FILE]
+                        files.append(LayerFile(layer=layer, path=p.relative_to(layer.root)))
+        return [f for f in files if str(f.path) != GlobalConsts.LAYER_CONFIG_FILE]
 
     @property
-    def links(self) -> [LayerLocalPath]:
-        files:[LayerLocalPath] = []
-        for layer in TEST_STRUCT['layers']:
-            layerPath = (TEST_ENV / layer).absolute()
-            for root, dirs, _files in os.walk(layerPath):
+    def links(self) -> [LayerFile]:
+        files:[LayerFile] = []
+        for layerPath in TEST_STRUCT['layers']:
+            layer = self.config.layer(withRoot=self.root/layerPath)
+            for root, dirs, _files in os.walk(layer.root):
                 for f in _files:
                     p = Path(root)/f
                     if p.is_symlink():
-                        files.append(LayerLocalPath(layer=layerPath, path=p.relative_to(layerPath)))
-        return [f for f in files if str(f.localPath) != GlobalConsts.LAYER_CONFIG_FILE]
+                        files.append(LayerFile(layer=layer, path=p.relative_to(layer.root)))
+        return [f for f in files if str(f.path) != GlobalConsts.LAYER_CONFIG_FILE]
 
     @property
-    def dirlinks(self) -> [LayerLocalPath]:
-        files:[LayerLocalPath] = []
-        for layer in TEST_STRUCT['layers']:
-            layerPath = (TEST_ENV / layer).absolute()
-            for root, dirs, _files in os.walk(layerPath):
-                for f in dirs:
+    def dirlinks(self) -> [LayerFile]:
+        files:[LayerFile] = []
+        for layerPath in TEST_STRUCT['layers']:
+            layer = self.config.layer(withRoot=self.root/layerPath)
+            for root, dirs, _files in os.walk(layer.root):
+                for f in _files:
                     p = Path(root)/f
-                    if p.is_symlink():
-                        files.append(LayerLocalPath(layer=layerPath, path=p.relative_to(layerPath)))
-        return [f for f in files if str(f.localPath) != GlobalConsts.LAYER_CONFIG_FILE]
+                    if p.is_symlink() and p.resolve().is_dir():
+                        files.append(LayerFile(layer=layer, path=p.relative_to(layer.root)))
+        return [f for f in files if str(f.path) != GlobalConsts.LAYER_CONFIG_FILE]
 
 
-    def filesIn(self, level:int) -> [LayerLocalPath]:
-        files:[LayerLocalPath] = []
-        layerPath = (TEST_ENV / str(self.layers[level])).absolute()
-        for root, dirs, _files in os.walk(layerPath):
-            for f in _files:
-                p = Path(root)/f
-                if p.is_file() and not p.is_symlink():
-                    files.append(LayerLocalPath(layer=layerPath, path=p.relative_to(layerPath)))
-        return [f for f in files if str(f.localPath) != GlobalConsts.LAYER_CONFIG_FILE]
+    def filesIn(self, level:int) -> [LayerFile]:
+        pass
 
-    def findFile(self, filt: callable(LayerLocalPath)):
+    def findFile(self, filt: callable(LayerFile)):
         for f in self.files:
             if filt(f):
                 return f
@@ -249,7 +255,7 @@ class BasicLayerCase(TestCase):
 
     @property
     def layers(self):
-        return [Layer(TEST_ENV / layerPath) for layerPath in TEST_STRUCT['layers']]
+        return [Layer(layerSet=self.testLayerSet, root=self.root/layerPath) for layerPath in TEST_STRUCT['layers']]
 
     @property
     def root(self):

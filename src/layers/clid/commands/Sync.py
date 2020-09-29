@@ -1,7 +1,6 @@
 from argparse import ArgumentParser
 from pathlib import Path
-from layers.lib import Layer
-from layers.lib import LayerSet
+from layers.lib import Layer,LayerSet
 
 import logging
 
@@ -17,15 +16,13 @@ defaults = {}
 def setup(_: ArgumentParser):
 	pass
 
-def run(target_layer: Path, **kwargs):
+def run(target_set: LayerSet, **kwargs):
 	logger.debug("Running sync")
 
-	layerSet = LayerSet.fromLayer(Layer(target_layer))
-
 	print("Syncing layers:")
-	for layer in layerSet.layers:
-		print(" - " + str(layer.path))
+	for layer in target_set.layers:
+		print(" - " + str(layer.root))
 	
-	LayerSet.fromLayer(Layer(target_layer)).sync()
+	target_set.sync()
 
 	print("Done")

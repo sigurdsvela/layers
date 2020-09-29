@@ -18,6 +18,7 @@ WORKDIR /home/docker/
 
 RUN sudo pip3 install pyinstaller
 RUN sudo pip3 install pyyaml
+RUN sudo pip3 install typeguard
 
 COPY . layers
 RUN sudo chown -R docker:docker .

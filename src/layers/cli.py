@@ -9,9 +9,9 @@ import sys
 commands = layers.clid.commands
 argtype = layers.clid.argtype
 
-logLevel = logging.WARNING
+logLevel = logging.WARN
 
-root = logging.getLogger()
+root = logging.getLogger(__name__)
 
 handler = logging.StreamHandler(sys.stdout)
 root.setLevel(logLevel)
@@ -23,15 +23,18 @@ root.addHandler(handler)
 class Runner:
 	@classmethod
 	def globalDefaults(cls):
+		from layers.lib import UserConfig
 		import os
-		return { 'target_layer': Path(os.getcwd()) }
+		return {
+			'target_set': Path(os.getcwd()),
+			'config': UserConfig.forCurrentUser()
+		}
 
 	def run(self, command, **kwargs):
-		logger = logging.getLogger(".".join([__name__, "Runner"]))
+		logger = logging.getLogger(".".join([__name__, str(__class__), "Runner"]))
 		
 		logger.debug(f"Running command {command} with args: ")
 		logger.debug(kwargs)
-		import sys
 
 		_stdout = sys.stdout
 		_stdout = sys.stdout
@@ -43,7 +46,11 @@ class Runner:
 			sys.stdout = StringIO()
 
 		if self._defaults:
-			kwargs = dict(dict(__class__.globalDefaults(), **command.defaults), **kwargs)
+			kwargs = {
+				**__class__.globalDefaults(),
+				**command.defaults,
+				**kwargs
+			}
 
 		try:
 			return command.run(**kwargs)

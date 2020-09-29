@@ -6,7 +6,7 @@ class TestBasicLayerCase(BasicLayerCase):
 		self.sync()
 
 	def test_Setup(self):
-		from layers.lib import LayerSet
+		from layers.lib import LayerSet, UserConfig
 
 		self.assertCountEqual(self.verify(), [])
-		self.assertCountEqual(LayerSet.fromLayer(self.layers[0]).layers, self.layers)
+		self.assertCountEqual(self.testLayerSet.layers, self.layers)

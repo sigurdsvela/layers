@@ -1,7 +1,6 @@
 from argparse import ArgumentParser
 from pathlib import Path
-from layers.lib import Layer
-from layers.lib import LayerSet
+from layers.lib import LayerSet, LayerFile, Layer, UserConfig, Level
 
 info = {
 	'name': 'new',
@@ -16,7 +15,7 @@ def setup(parser: ArgumentParser):
 	level = parser.add_mutually_exclusive_group()
 	level.add_argument(
 		"-l", "--level",
-		type=int,
+		type=Level.parseFactory(),
 		dest="level",
 		default=-1,
 		help="The level number to assign the new layer. If a layer of this level exists, the new one will be placed on the given level, and levels from there on down will be shifted down."
@@ -26,7 +25,7 @@ def setup(parser: ArgumentParser):
 		"--top", "-t",
 		dest="level",
 		action="store_const",
-		const="top",
+		const=Level.TOP,
 		help="Add the new layer as the top level."
 	)
 
@@ -34,32 +33,19 @@ def setup(parser: ArgumentParser):
 		"--bottom", "-b",
 		dest="level",
 		action="store_const",
-		const="bottom",
+		const=Level.BOTTOM,
 		help="Add the new layer as the top level."
 	)
 
 	parser.add_argument(
 		"mount",
-		type=Path,
+		type=str,
 		help="The mount point of the new layer"
 	)
 
-def run(target_layer: Path, mount: Path, level, **kwargs):
-	from layers.lib import Layer
-	from layers.lib import LayerConfig
+def run(config: UserConfig, target_set: LayerSet, mount: str, level: Level, **kwargs):
+	from layers.lib import Layer, UserConfig
 
-	if not mount.exists():
-		mount.mkdir()
-
-	print(f"Creating a new layer at {mount}")
+	print(f"Creating a new layer for set {target_set.name} at {mount}")
 	
-	if not mount.is_dir():
-		raise Exception("Target mount is a file. Must be directory")
-
-	if (not Layer.isInLayer(target_layer)):
-		print("No target set. Creating as a new layerset.")
-		Layer.createSet(mount.resolve().absolute())
-	else:
-		print(f"Creating as part of the same layerset as {target_layer}")
-		layer = Layer(target_layer.absolute())
-		layer.createLayer(mount.resolve().absolute(), level)
+	target_set.addLayer(Layer(root=mount, layerSet=target_set), atLevel=level)

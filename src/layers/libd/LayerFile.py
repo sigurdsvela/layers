@@ -2,65 +2,46 @@
 from __future__ import annotations
 from pathlib import Path
 from typing import Union
+import layers.lib as lib
+from layers.lib import Exceptions
 import os
 import shutil
 
-class LayerLocalPath:
-	
-	def _fromPath(self, path: Path):
-		from layers.lib import Layer
-		self._layerPath = Layer.findRoot(path)
-		self._localPath = path.absolute().relative_to(self._layerPath)
+class LayerFile:
+	@classmethod
+	def parserFactory(cls, layerSet: 'lib.LayerSet'):
+		return lambda arg: cls.parse(arg, layerSet)
 
-	def _fromLayerAndPath(self, layer: Path, path: Path):
-		from layers.lib import Layer
-		self._layerPath = Layer.findRoot(layer)
-		self._localPath = path
+	@classmethod
+	def parse(cls, arg, layerSet: 'lib.LayerSet'):
+		path = Path(arg).absolute()
 
-	
-	def __init__(self, path:Union[Path,str], layer:Union[Path,str] = None):
-		from layers.lib import Layer
+		layerFile = layerSet.findLayerFile(path)
 
-		if layer is None:
-			if isinstance(path, Path):
-				self._fromPath(path)
-			elif isinstance(path, str):
-				self._fromPath(Path(path))
-			else:
-				raise TypeError("Unknown signature")
+		if layerFile is None:
+			return Exceptions.InvalidArgumentError(argType="LayerFile", argValue=arg)
 		else:
-			if isinstance(layer, str):
-				layer = Path(layer)
+			return LayerFile(layerSet, path)
 
-			if isinstance(layer, Layer):
-				layer = layer.path
-
-			if isinstance(path, str):
-				path = Path(path)
-
-			if isinstance(path, Path) and isinstance(layer, Path):
-				self._fromLayerAndPath(layer, path)
-			else:
-				raise TypeError("Uknown Signature")
-
-	def inLayer(self, layer: Union[Path]):
+	def __init__(self, layer: 'lib.Layer', path: Path):
 		from layers.lib import Layer
+		if not isinstance(path, Path) or not isinstance(layer, Layer):
+			raise TypeError()
+		self._layer = layer
+		self._path = path
 
-		if isinstance(layer, Layer):
-			return LayerLocalPath(layer=layer.path, path=self.localPath)
-		elif isinstance(layer, Path):
-			return LayerLocalPath(layer=layer, path=self.localPath)
-		else:
-			raise TypeError("Invalid signature")
+	def inLayer(self, layer: Layer):
+		from layers.lib import Layer
+		return LayerFile(layer, self._path)
 
 	def inLevel(self, level:int):
-		return LayerLocalPath(layer=self.layer.layers[level], path=self.localPath)
+		return LayerFile(layer=self.layer.layerSet.layers[level], path=self.path)
 
 	def withName(self, name: str):
-		return LayerLocalPath(layer=self.layerPath, path=self.localPath.parent / name)
+		return LayerFile(layer=self.layer, path=self.path.parent / name)
 
-	def withLocalPath(self, localPath: Path):
-		return LayerLocalPath(layer=self.layerPath, path=localPath)
+	def withPath(self, path: Path):
+		return LayerFile(layer=self.layer, path=path)
 
 	def getLocalParent(self):
 		# Get the parent of this files that
@@ -71,15 +52,15 @@ class LayerLocalPath:
 		return parent
 
 	def stepTowards(self, path):
-		steps = path.localPath.relative_to(self.localPath).parts
+		steps = path.localPath.relative_to(self.path).parts
 		return self/steps[0]
 
 	def move(self, *args, **kwargs):
 		if len(args) == 1:
-			self.moveToPathAndLayer(args[0].localPath, args[0].layer)
-		elif 'withLocalPath' in kwargs or 'inLayer' in kwargs:
+			self.moveToPathAndLayer(args[0].path, args[0].layer)
+		elif 'withPath' in kwargs or 'inLayer' in kwargs:
 			self.moveToPathAndLayer(
-				kwargs['withLocalPath'] if 'withLocalPath' in kwargs else None,
+				kwargs['withPath'] if 'withPath' in kwargs else None,
 				kwargs['inLayer'] if 'inLayer' in kwargs else None
 			)
 		else:
@@ -122,7 +103,7 @@ class LayerLocalPath:
 		# Check for out of sync condition
 		# We need to make sure that the target origin local path
 		# does not exist in a any of the layers.
-		for layer in self.layer.layers:
+		for layer in self.layer.siblings:
 			if (p := newOrigin.inLayer(layer).origin).exists() and p != origin:
 				raise Exceptions.FileConflictError("Filetree out of sync!")
 
@@ -139,7 +120,7 @@ class LayerLocalPath:
 
 
 		logger.debug("Removing links to the previous origin file")
-		for layer in self.layer.layers:
+		for layer in self.layer.layerSet.layers:
 			if origin.inLayer(layer).isSymlink():
 				origin.inLayer(layer).unlink()
 
@@ -161,7 +142,7 @@ class LayerLocalPath:
 			origin.unlink(force=True)
 
 		logger.debug("Creating links to the new origin file")
-		for layer in self.layer.layers:
+		for layer in self.layer.siblings:
 			if layer != newOrigin.layer:
 				newOrigin.inLayer(layer).symlinkTo(newOrigin.layer)
 		
@@ -173,7 +154,7 @@ class LayerLocalPath:
 			raise NotADirectoryError("")
 
 		dirList = [
-			__class__(self.path / p) for p in os.listdir(self.path)
+			LayerFile(self.layer, self.path / p) for p in os.listdir(self.path)
 		]
 
 		if not files:
@@ -188,16 +169,16 @@ class LayerLocalPath:
 		return dirList
 
 	def isDir(self):
-		return self.path.resolve().is_dir()
+		return self.absolute.resolve().is_dir()
 
 	def isFile(self):
-		return self.path.is_file()
+		return self.absolute.is_file()
 
 	def isSymlink(self):
-		return self.path.is_symlink()
+		return self.absolute.is_symlink()
 
 	def isOrigin(self):
-		return self.origin.layer == self.layer
+		return self.absolute.resolve() == self.absolute
 
 	def unlink(self, force=False):
 		from layers.lib import Exceptions
@@ -212,8 +193,8 @@ class LayerLocalPath:
 	def symlinkTo(self, layer):
 		self.path.symlink_to(self.inLayer(layer).path)
 
-	def relativeTo(self, path: LayerLocalPath):
-		return LayerLocalPath(self.path.relative_to(path.path))
+	def relativeTo(self, path: LayerFile):
+		return LayerFile(self.layer, self.path.relative_to(path))
 
 	def rmdir(self):
 		return self.path.rmdir()
@@ -223,48 +204,43 @@ class LayerLocalPath:
 
 	@property
 	def isRoot(self):
-		return len(self.localPath.parts) == 0
+		return len(self.path.parts) == 0
 
 	@property
 	def parent(self):
 		if self.isRoot:
 			return None
-		return self.withLocalPath(self.localPath.parent)
+		return self.withPath(self.path.parent)
 
 	@property
-	def layer(self):
-		from layers.lib import Layer
-		return Layer(self._layerPath)
+	def layer(self) -> 'lib.Layer':
+		return self._layer
 
 	@property
-	def origin(self):
-		return LayerLocalPath(self.path.resolve(strict=False).absolute())
-
-	@property
-	def layerPath(self) -> Path:
-		return self._layerPath
-
-	@property
-	def localPath(self) -> Path:
-		return self._localPath
-
-	@property
-	def name(self) -> str:
-		return self.localPath.name
+	def origin(self) -> LayerFile:
+		return self.layer.layerSet.origin(self)
 
 	@property
 	def path(self) -> Path:
-		return self.layerPath / self.localPath
+		return self._path
 
-	def __eq__(self, other:LayerLocalPath):
-		if not self.layerPath == other.layerPath:
+	@property
+	def name(self) -> str:
+		return self.path.name
+
+	@property
+	def absolute(self) -> Path:
+		return self.layer.root / self.path
+
+	def __eq__(self, other:LayerFile):
+		if not self.absolute == other.absolute:
 			return False
-		if not self.localPath == other.localPath:
+		if not self.absolute == other.absolute:
 			return False
 		return True
 
 	def __str__(self) -> str:
-		return str(self.layerPath / self.localPath)
+		return str(self.absolute)
 
 	def __truediv__(self, other:Union[Path, str]):
-		return self.withLocalPath(self.localPath/other)
+		return self.withPath(self.path/other)

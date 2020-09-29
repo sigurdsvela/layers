@@ -10,8 +10,8 @@ info = {
 
 defaults = {}
 
-def setup(_: ArgumentParser):
+def setup(__: ArgumentParser, **_):
 	pass
 
-def run(target_layer: Path, **kwargs):
-	LayerSet.fromLayer(Layer(target_layer)).purge()
+def run(target_set: Layer, **_):
+	target_set.purge()

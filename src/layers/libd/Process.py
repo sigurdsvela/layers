@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 from threading import Thread
 from datetime import timedelta, datetime
-from layers.lib import LayerLocalPath
+from layers.lib import LayerFile
 import shutil
 import logging
 
@@ -56,7 +56,7 @@ class Process:
 
 class LayerFileMoveProcess(Process):
 
-	def __init__(self, fromFile:LayerLocalPath, toFile:LayerLocalPath, stdout = sys.stdout):
+	def __init__(self, fromFile:LayerFile, toFile:LayerFile, stdout = sys.stdout):
 		super().__init__(
 			function=self._move,
 			kwargs={
@@ -66,7 +66,7 @@ class LayerFileMoveProcess(Process):
 			name = ''
 		)
 
-	def _move(self, fromFile:LayerLocalPath, toFile:LayerLocalPath, onStatus):
+	def _move(self, fromFile:LayerFile, toFile:LayerFile, onStatus):
 		from time import sleep
 		import os
 		

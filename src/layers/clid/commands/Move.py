@@ -1,10 +1,6 @@
-import os
-from typing import TypeVar, Generic
 from argparse import ArgumentParser
+from layers.lib import LayerFile, Layer, Level, LayerSet, process, UserConfig
 from pathlib import Path
-from layers.lib import LayerLocalPath, Layer
-
-LevelType = TypeVar('LevelType', int, str)
 
 info = {
 	"name": "mv",
@@ -16,9 +12,12 @@ defaults = {
 	"new_path": None
 }
 
-def setup(parser: ArgumentParser):
-	from layers.cli import argtype
-	
+def setup(
+	parser: ArgumentParser,
+	target_set: LayerSet,
+	config: UserConfig,
+	cwd: Path
+):
 	move_dst_group = parser.add_mutually_exclusive_group(required = False)
 	move_dst_group.add_argument(
 		'--up', '-u',
@@ -59,41 +58,35 @@ def setup(parser: ArgumentParser):
 	)
 
 	parser.add_argument(
-		'path',
-		type=Path
+		'fromFile',
+		type=LayerFile.parserFactory(layerSet=target_set)
 	)
 
 	parser.add_argument(
-		'new_path',
-		type=Path,
+		'toFile',
+		type=LayerFile.parserFactory(layerSet=target_set),
 		nargs='?'
 	)
 
-def run(target_layer, path, level, new_path=None, **kwargs):
-	from layers.lib import LayerSet, Layer, LayerLocalPath
-	from layers.cli import argtype
-	from layers.lib import process
-
-	level = argtype.level(target_layer, path)(level)
-
-	targetPath = LayerLocalPath(path.absolute())
-	targetOrigin = targetPath.origin
-	newOrigin = targetOrigin
+def run(target_set: Layer, fromFile: LayerFile, level: Level, toFile=LayerFile, **kwargs):
 	
-	print(f"Moving {targetPath.localPath} ", end="")
-	if level is not None:
-		newOrigin = newOrigin.inLevel(level)
-		print(f"from level {targetPath.layer.level} to {level}", end="")
+	fromFile = fromFile.origin
 
-	if level is not None and new_path is not None:
+	if toFile is None:
+		toFile = fromFile
+
+	print(f"Moving {fromFile.path} ", end="")
+	if level is not None:
+		toFile = toFile.inLevel(level)
+		print(f"from level {fromFile.layer.level} to {level}", end="")
+
+	if level is not None and toFile is not None:
 		print(" and ", end="")
 
-	if new_path is not None:
-		newOrigin = newOrigin.withLocalPath(new_path.absolute().relative_to(targetOrigin.layer.path))
-		print(f"to {newOrigin.localPath}", end="")
+	if toFile is not None:
+		print(f"to {toFile.path}", end="")
 	print()
 	
-	print(f"{str(targetOrigin)} -> {str(newOrigin)}")
-	process.LayerFileMoveProcess(fromFile=targetOrigin, toFile=newOrigin).start().wait()
-	LayerSet(newOrigin.layer).sync()
+	process.LayerFileMoveProcess(fromFile=fromFile, toFile=toFile).start().wait()
+	target_set.sync()
 
