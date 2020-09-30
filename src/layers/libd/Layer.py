@@ -3,15 +3,13 @@ import os
 from pathlib import Path
 from typing import Union
 from logging import getLogger
-from layers.lib import GlobalConsts
-from layers.lib import LayerFile
 import layers.lib as lib
 
 
 logger = getLogger()
 
 class Layer:
-	def __init__(self, layerSet: 'lib.LayerSet', root: Path):
+	def __init__(self, layerSet: lib.LayerSet, root: Path):
 		from layers.lib import LayerSet
 		if not isinstance(root, Path) or not isinstance(layerSet, LayerSet):
 			raise TypeError()
@@ -19,14 +17,15 @@ class Layer:
 		self._root = root
 
 	@property
-	def layerSet(self) -> 'lib.LayerSet':
+	def layerSet(self) -> lib.LayerSet:
 		return self._layerSet
 
 	@property
 	def siblings(self) -> [Layer]:
 		return self.layerSet.layers
 
-	def findPurelyDerivativeDirs(self, path=None):
+	def findPurelyDerivativeDirs(self, path=None) -> [LayerFile]:
+		from layers.lib import LayerFile
 		if path is None:
 			path = LayerFile(self, self.root)
 		
@@ -41,21 +40,36 @@ class Layer:
 		return derivdirs
 
 
-	@property
-	def files(self) -> [LayerFile]:
+	def findFiles(self, withFilter: callable = lambda f: f.is_file() and not f.is_symlink()) -> [LayerFile]:
+		from layers.lib import GlobalConsts, LayerFile
 		#All the files in this layer
 		_files = []
 		for root,dirs,files in os.walk(self.root):
 			proot = Path(root)
 			for f in files:
-				if (proot/f).name != GlobalConsts.LAYER_CONFIG_FILE:
-					if not (proot/f).is_symlink():
-						_files.append(
-							LayerFile(
-								layer=self,
-								path=(proot/f).relative_to(self.root)
-							)
+				if withFilter(proot/f):
+					_files.append(
+						LayerFile(
+							layer=self,
+							path=(proot/f).relative_to(self.root)
 						)
+					)
+		return _files
+
+	def findDirs(self, withFilter: callable = lambda x: x) -> [LayerFile]:
+		from layers.lib import GlobalConsts, LayerFile
+		#All the files in this layer
+		_files = []
+		for root,dirs,files in os.walk(self.root):
+			proot = Path(root)
+			for f in dirs:
+				if withFilter(proot/f):
+					_files.append(
+						LayerFile(
+							layer=self,
+							path=(proot/f).relative_to(self.root)
+						)
+					)
 		return _files
 	
 	@property
@@ -68,6 +82,7 @@ class Layer:
 
 	# Remove all broken links from this layer
 	def purge(self):
+		from layers.lib import LayerFile
 		for root, dirs, files in os.walk(self.root):
 			paths = files
 			paths.extend(dirs)
@@ -83,7 +98,7 @@ class Layer:
 
 	def __eq__(self, other: Layer) -> bool:
 		if not isinstance(other, __class__):
-			return False
+			raise TypeError(f"Layer == {type(other)} not supported")
 		return self.root.absolute() == other.root.absolute()
 
 __all__ = 'Layer'

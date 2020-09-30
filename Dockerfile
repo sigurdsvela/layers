@@ -20,7 +20,7 @@ RUN sudo pip3 install pyinstaller
 RUN sudo pip3 install pyyaml
 RUN sudo pip3 install typeguard
 
-COPY . layers
+#COPY . layers
 RUN sudo chown -R docker:docker .
 # RUN layers new level1
 # RUN cd level1; layers new ../level2

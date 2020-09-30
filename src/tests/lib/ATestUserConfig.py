@@ -84,7 +84,7 @@ class TestUserConfig(TestCase):
 
 		self.assertIsNotNone(self.config.layerSet(withLayer=testLayer))
 		self.assertIsNotNone(self.config.layerSet(withLayer=testPath))
-		self.assertEqual(self.config.layerSet(withLayer=testPath), testLayer)
+		self.assertEqual(self.config.layerSet(withLayer=testPath), root)
 
 
 	

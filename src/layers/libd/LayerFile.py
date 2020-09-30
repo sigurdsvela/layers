@@ -3,17 +3,17 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Union
 import layers.lib as lib
-from layers.lib import Exceptions
 import os
 import shutil
 
 class LayerFile:
 	@classmethod
-	def parserFactory(cls, layerSet: 'lib.LayerSet'):
+	def parserFactory(cls, layerSet: lib.LayerSet):
 		return lambda arg: cls.parse(arg, layerSet)
 
 	@classmethod
-	def parse(cls, arg, layerSet: 'lib.LayerSet'):
+	def parse(cls, arg, layerSet: lib.LayerSet):
+		from layers.lib import Exceptions
 		path = Path(arg).absolute()
 
 		layerFile = layerSet.findLayerFile(path)
@@ -23,7 +23,7 @@ class LayerFile:
 		else:
 			return LayerFile(layerSet, path)
 
-	def __init__(self, layer: 'lib.Layer', path: Path):
+	def __init__(self, layer: lib.Layer, path: Path):
 		from layers.lib import Layer
 		if not isinstance(path, Path) or not isinstance(layer, Layer):
 			raise TypeError()
@@ -213,7 +213,7 @@ class LayerFile:
 		return self.withPath(self.path.parent)
 
 	@property
-	def layer(self) -> 'lib.Layer':
+	def layer(self) -> lib.Layer:
 		return self._layer
 
 	@property
@@ -232,15 +232,32 @@ class LayerFile:
 	def absolute(self) -> Path:
 		return self.layer.root / self.path
 
-	def __eq__(self, other:LayerFile):
-		if not self.absolute == other.absolute:
-			return False
-		if not self.absolute == other.absolute:
-			return False
-		return True
-
 	def __str__(self) -> str:
 		return str(self.absolute)
 
 	def __truediv__(self, other:Union[Path, str]):
 		return self.withPath(self.path/other)
+
+	def __key(self):
+		return (self.absolute)
+
+	def __hash__(self):
+		return hash(self.__key)
+
+	def __eq__(self, other):
+		if isinstance(other, __class__):
+			return self.__key() == other.__key()
+		if isinstance(other, Path):
+			return self.absolute == other
+		return NotImplemented
+
+	def __lt__(self, other):
+		if isinstance(other, __class__):
+			return self.__key() < other.__key()
+		return NotImplemented
+	
+	def __gt__(self, other):
+		if isinstance(other, __class__):
+			return self.__key() > other.__key()
+		return NotImplemented
+

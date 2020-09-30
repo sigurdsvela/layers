@@ -1,19 +1,20 @@
 from __future__ import annotations
 from uuid import UUID
 from pathlib import Path
-from layers.lib import Layer, Exceptions, UserConfig
 import layers.lib as lib
+from typing import Union
 import logging
 import copy
 
 # Represents a set of layers in a layer set
 class LayerSet:
 	@classmethod
-	def parseFactory(cls, config: UserConfig, cwd: Path):
+	def parseFactory(cls, config: lib.UserConfig, cwd: Path):
 		return lambda arg: cls.parse(config, cwd, arg)
 	
 	@classmethod
-	def parse(cls, config:UserConfig, cwd:Path, arg:str):
+	def parse(cls, config:lib.UserConfig, cwd:Path, arg:str):
+		from layers.lib import Exceptions
 		if arg:
 			layerSet = config.layerSet(withName=arg)
 			if layerSet is not None:
@@ -24,17 +25,14 @@ class LayerSet:
 				argValue=arg
 			)
 		else:
-			layer = config.layer(withPath=cwd)
+			layer = config.layer(withRoot=cwd)
 			if layer is not None:
-				layerSet = layer.layerSet
-
-			if layerSet is not None:
-				return LayerSet
+				return layer.layerSet
 
 			return None
 
 
-	def __init__(self, name:str = None, config: UserConfig = None):
+	def __init__(self, name:str = None, config: lib.UserConfig = None):
 		self._name  = name
 		self._config = config
 
@@ -50,7 +48,7 @@ class LayerSet:
 		from layers.lib import LayerFile
 		path = path.absolute()
 		layerPath = None
-		layer = None
+		layer:lib.Layer = None
 		for l in self.layers:
 			try:
 				layerPath = path.relative_to(l.root)
@@ -68,32 +66,33 @@ class LayerSet:
 		return self._name
 
 	@property
-	def config(self) -> UserConfig:
+	def config(self) -> lib.UserConfig:
 		return copy.deepcopy(self._config)
 
 	@property
-	def layers(self) -> [Layer]:
+	def layers(self) -> [lib.Layer]:
 		return self._config.layers(inSet=self)
 
-	@property
-	def files(self):
+	def findFiles(self):
 		# All the files in this layerset
 		files = []
 		for layer in self.layers:
-			files.extend(layer.files)
+			files.extend(layer.findFiles())
 		return files
 
-	@property
-	def dirs(self):
+	def findDirs(self):
 		dirs = []
 		for layer in self.layers:
-			dirs.extend(layer.dirs)
+			dirs.extend(layer.findDirs())
 		return dirs
 
-	def addLayer(self, layer: Layer, atLevel: 'lib.Level'):
-		self._config.addLayer(layer, toSet=self, atLevel=atLevel)
+	def addLayer(self, layer: Union[lib.Layer, Path], atLevel: lib.Level = None):
+		from layers.lib import Level
+		if atLevel is None:
+			atLevel = Level.BOTTOM
+		return self._config.addLayer(layer, toSet=self, atLevel=atLevel(target=self))
 
-	def origin(self, file:'lib.LayerFile') -> 'lib.LayerFile':
+	def origin(self, file:lib.LayerFile) -> lib.LayerFile:
 		for layer in self.layers:
 			f = file.inLayer(layer)
 			if f.absolute.resolve() == f.absolute:
@@ -101,10 +100,10 @@ class LayerSet:
 		return None
 
 	def move(self,
-		file:'lib.LayerFile',
-		toLayer:'lib.Layer'=None,
-		toLevel: 'lib.Level'= None
-	) -> 'lib.LayerFile':
+		file: lib.LayerFile,
+		toLayer: lib.Layer=None,
+		toLevel: lib.Level= None
+	) -> lib.LayerFile:
 		pass
 
 	def links(self, toFiles = False, toDirs = False):
@@ -115,10 +114,12 @@ class LayerSet:
 
 	# Sync the entire layer set
 	def sync(self):
-		logger = logging.getLogger(".".join([__name__, __file__, str(__class__), "sync"]))
-		
-		logger.debug(f"Syncing {len(self.files)} files in {len(self.layers)} layers")
-		files = self.files
+		from layers.lib import Exceptions
+		logger = logging.getLogger(".".join(["layers", __file__, str(__class__), "sync"]))
+		logger.setLevel(logging.DEBUG)
+
+		logger.debug(f"Syncing {len(self.findFiles())} files in {len(self.layers)} layers")
+		files = self.findFiles()
 		for f in files:
 			logger.debug(f"- {f.absolute} from {f.layer.root}")
 			for layer in self.layers:
@@ -165,8 +166,13 @@ class LayerSet:
 			layer.purge()
 
 
+	def __key(self):
+		return (self.name, self.config.home)
+
+	def __hash__(self):
+		return hash(self.__key)
+
 	def __eq__(self, other):
-		if not isinstance(other, LayerSet):
-			return False
-		
-		return (self.name) == (other.name) and (self.layers == other.layers)
+		if isinstance(other, __class__):
+			return self.__key() == other.__key()
+		return NotImplemented

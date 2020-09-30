@@ -3,7 +3,7 @@ build:
 	docker build . --tag layers
 
 run:
-	docker run -it layers "./setup_testenv.sh"
+	docker run -it --mount type=bind,src=$(shell pwd),target=/home/docker/layers layers
 
 test:
 	docker run -it layers "./run_tests.sh"

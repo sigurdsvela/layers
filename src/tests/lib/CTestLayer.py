@@ -24,6 +24,12 @@ class TestLayer(TestCase):
 		subprocess.Popen(["rm", "-rf", (self.layer.root)]).wait()
 		self.assertFalse(self.config.path.exists())
 
+	def test_Equality(self):
+		path = Path("/dosent/matter")
+		this = Layer(layerSet=self.rootSet, root=path)
+		other = Layer(layerSet=self.rootSet, root=path)
+		self.assertEqual(this, other)
+
 	def test_simpleShallowPurge(self):
 		(self.layer.root/"testfile").symlink_to(Path("Broken"))
 		self.assertTrue((self.layer.root/"testfile").is_symlink())
@@ -54,16 +60,33 @@ class TestLayer(TestCase):
 		for testFile in testFiles:
 			testFile.touch()
 
-		for f in self.layer.files:
+		for f in self.layer.findFiles():
 			testFiles.index(f.absolute)
 		
-		files = [f.absolute for f in self.layer.files]
+		files = [f.absolute for f in self.layer.findFiles()]
 		for f in testFiles:
 			files.index(f)
 
 	def test_findPurelyDerivativeDir(self):
-		# TODO
+		dervivatie = (self.layer.root/"dervivatie")
+		nonDervivative = (self.layer.root/"nono-dervivatie")
+		dervivatie.mkdir()
+		nonDervivative.mkdir()
+		testFiles = [
+			Path("testfile1"),
+			Path("testfile2"),
+			Path("testfile3")
+		]
+
+		for testFile in testFiles:
+			(dervivatie/testFile).symlink_to(Path("/dosent/matter"))
+			(nonDervivative/testFile).touch()
+
+		derivDirs = self.layer.findPurelyDerivativeDirs()
+		self.assertTrue(len(derivDirs) == 1)
+		self.assertTrue(derivDirs.index(dervivatie) == 0)
+
+		
+
+	def test_findRecursivlyPurelyDerivativeDir(self):
 		pass
-
-
-	

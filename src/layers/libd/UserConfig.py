@@ -3,7 +3,6 @@ import logging
 from yaml import safe_load, dump
 from pathlib import Path
 from typing import Union
-from layers.lib import GlobalConsts
 import layers.lib as lib
 from uuid import UUID
 
@@ -14,6 +13,7 @@ class UserConfig:
 		return cls(Path.home())
 
 	def __init__(self, home: Path):
+		from layers.lib import GlobalConsts
 		self.home = home
 		self.configDir = Path(GlobalConsts.USER_CONFIG_DIR.format(home=str(home)))
 
@@ -49,33 +49,44 @@ class UserConfig:
 			fh.close()
 
 	def addLayer(self,
-		layer: lib.Layer,
+		layer: Union[lib.Layer, Path],
 		toSet: Union[lib.LayerSet, str],
-		atLevel: lib.Level = lib.Level.BOTTOM
+		atLevel: lib.Level = None
 	) -> lib.Layer:
-		from layers.lib import LayerSet, Layer
+		from layers.lib import LayerSet, Layer, Level
 		config = self.readConfig()
 
-		if isinstance(toSet, LayerSet):
-			toSet = toSet.name
+		if isinstance(toSet, str):
+			toSet = self.layerSet(withName=toSet)
 
-		if not toSet in config['sets']:
-			raise FileNotFoundError(f"LayerSet with name {toSet} not found exists")
+		if isinstance(layer, Layer):
+			layer = layer.root
+
+		if not toSet.name in config['sets']:
+			raise FileNotFoundError(f"LayerSet with name '{toSet.name}' exists")
 
 		if (layerSet := self.layerSet(withLayer=layer)):
 			raise FileExistsError(f"Layer at '{layer.root}' allready in set '{layerSet.name}'")
 		
-		targetSet = config['sets'][toSet]
-		maxLevel = len(targetSet['layers']) - 1
-		config['sets'][toSet]['layers'].insert(
-			atLevel.abs(maxLevel=maxLevel),
-			{
-				'root': str(layer.root)
-			}
-		)
+		if atLevel is None:
+			atLevel = Level.BOTTOM(toSet)
+
+		atLevel = atLevel(toSet)
+
+		if atLevel != Level.BOTTOM(toSet):
+			config['sets'][toSet.name]['layers'].insert(
+				int(atLevel),
+				{
+					'root': str(layer)
+				}
+			)
+		else:
+			config['sets'][toSet.name]['layers'].extend([{
+				'root': str(layer)
+			}])
 
 		self.writeConfig(config)
-		return Layer(layerSet=LayerSet(name=toSet, config=self), root=layer.root)
+		return Layer(layerSet=toSet, root=layer)
 
 
 	def addLayerSet(
@@ -96,29 +107,24 @@ class UserConfig:
 		withName: str = None,
 		withLayer: Union[lib.Layer, Path] = None,
 	) -> lib.LayerSet:
+		from layers.lib import LayerSet, Layer
 		if withName is not None:
 			if withName in self.readConfig()['sets']:
-				return self.readConfig()['sets'][withName]
+				return LayerSet(name=withName, config=self)
 			else:
 				return None
 		
 		assert(isinstance(withLayer, lib.Layer) or isinstance(withLayer, Path))
 		if withLayer is not None:
-			for layerSet in self.layerSets:
-				for layer in self.layers(inSet=layerSet):
-					if isinstance(withLayer, lib.Layer):
-						if layer == withLayer:
-							return layer
-					else:
-						if layer.root == withLayer:
-							return layer
+			if (layer := self.layer(withRoot=withLayer.root if isinstance(withLayer, Layer) else withLayer)) is not None:
+				return layer.layerSet
 		
 		return None
 	
 	@property
 	def layerSets(self) -> [lib.LayerSet]:
 		from layers.lib import LayerSet
-		return [LayerSet(name, self) for name in self.readConfig()['sets']]
+		return [LayerSet(name, self) for name, layers in self.readConfig()['sets'].items()]
 
 	def layers(self, inSet: lib.LayerSet) -> [lib.Layer]:
 		from layers.lib import Layer
@@ -136,3 +142,24 @@ class UserConfig:
 				if layer.root == withRoot:
 					return layer
 		return None
+
+	def __key(self):
+		return self.home
+
+	def __hash__(self):
+		return hash(self.__key)
+
+	def __eq__(self, other):
+		if isinstance(other, __class__):
+			return self.__key() == other.__key()
+		return NotImplemented
+
+	def __lt__(self, other):
+		if isinstance(other, __class__):
+			return self.__key() < other.__key()
+		return NotImplemented
+	
+	def __gt__(self, other):
+		if isinstance(other, __class__):
+			return self.__key() > other.__key()
+		return NotImplemented
